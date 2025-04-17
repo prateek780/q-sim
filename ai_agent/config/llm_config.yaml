@@ -1,0 +1,14 @@
+# llm_config.yaml
+llm:
+  provider: "openai"
+  model: "models/gemini-2.0-flash"
+  api_key: "${OPENAI_API_KEY}"
+  base_url: "https://generativelanguage.googleapis.com/v1beta/openai/"
+  timeout: 60
+  temperature: 0.2
+  max_tokens: 1000
+  retry_attempts: 3
+  
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
