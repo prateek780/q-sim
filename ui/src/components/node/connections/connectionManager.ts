@@ -8,6 +8,8 @@ import { getNodeFamily } from "../base/enums";
 import { QuantumAdapter } from "../base/quantum/quantumAdapter";
 
 
+type ConnectionCallbackFunction = (line: SimulatorConnection, from: SimulatorNode, to: SimulatorNode) => void;
+
 export class ConnectionManager {
     static #instance: ConnectionManager;
 
@@ -15,6 +17,7 @@ export class ConnectionManager {
     connectionStore = new Map<string, SimulatorConnection>();
     inprogressLine = new Map<string, SimulatorConnection>();
     canvas;
+    onConnectionCallbackFunctions: ConnectionCallbackFunction[] = [];
 
     constructor(canvas: fabric.Canvas) {
         this.canvas = canvas;
@@ -108,7 +111,15 @@ export class ConnectionManager {
         } else {
             NetworkManager.getInstance().onConnectionCreated(from, to);
         }
+
+        this.onConnectionCallbackFunctions.forEach(callback => callback(line, from, to));
         return
+    }
+
+    onConnectionCallback(func: ConnectionCallbackFunction) {
+        if (!this.onConnectionCallbackFunctions.includes(func)) {
+            this.onConnectionCallbackFunctions.push(func);
+        }
     }
 
     sendAllLinesBackward() {
@@ -198,10 +209,11 @@ export class ConnectionManager {
     removeAllConnectionsIfExists(deletedNode: SimulatorNode) {
         for (const [key, line] of this.connectionStore) {
 
-            if (line.metaData.from == deletedNode || line.metaData.to == deletedNode) {
+            if (line.metaData.to && (line.metaData.from == deletedNode || line.metaData.to == deletedNode)) {
                 this.canvas.remove(line);
                 this.connectionStore.delete(key);
-                this.logger.info('Removed connection b/w', line.metaData.from.name, line.metaData.to?.name);
+                this.logger.info('Removed connection b/w', line.metaData.from.name, line.metaData.to.name);
+                NetworkManager.getInstance().onConnectionRemoved(line.metaData.from, line.metaData.to);
             }
         }
     }

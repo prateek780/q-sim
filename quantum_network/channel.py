@@ -50,7 +50,7 @@ class QuantumChannel(Sobject):
         # self.to_node.receive_qubit(noisy_qubit, self)
         to_node = self.node_2 if self.node_1 == from_node else self.node_1
         
-        to_node.receive_qbit(noisy_qubit)
+        to_node.receive_qubit(noisy_qubit)
 
     def apply_noise(self, qubit):
         """Applies the specified noise model to the qubit using QuTiP."""

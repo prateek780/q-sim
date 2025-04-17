@@ -1,3 +1,4 @@
+import { Point } from "fabric";
 import { SimulatorNode } from "./base/baseNode";
 import { QuantumAdapter, QuantumAdapterOptions } from "./base/quantum/quantumAdapter";
 import { QuantumHost, QuantumHostOptions } from "./base/quantum/quantumHost";
@@ -26,9 +27,11 @@ export class NodeManager {
             ...opts
         }
         const newNode = new ClassicalHost(options);
+        newNode.setXY(new Point(x, y));
         this.nodes.set(name, newNode); // Store node in the map
         return newNode;
     }
+
     createClassicalRouter(name: string, x: number, y: number, opts?: Partial<ClassicalRouterOptions>): ClassicalRouter {
         const options: Partial<ClassicalRouterOptions> = { // Use specific options interface
             name,
@@ -134,7 +137,9 @@ export class NodeManager {
     }
 
     removeNode(nodeId: string): void {
+        console.log('Before removing node:', this.nodes);
         this.nodes.delete(nodeId);
+        console.log('After removing node:', this.nodes);
     }
 }
 

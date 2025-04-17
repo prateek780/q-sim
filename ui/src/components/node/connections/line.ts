@@ -8,6 +8,7 @@ export interface LineMetaData {
     from: SimulatorNode;
     to?: SimulatorNode;
     connectionType: NodeFamily;
+    lossPerKm?: number;
 }
 
 export class SimulatorConnection extends fabric.Line {
@@ -26,6 +27,7 @@ export class SimulatorConnection extends fabric.Line {
 
         super([x1, y1, x2, y2], options);
         this.metaData = metadata;
+        this.metaData.lossPerKm = this.metaData.lossPerKm || 0.1;
     }
 
     updateMetaData(metaData: Partial<LineMetaData>) {
@@ -39,13 +41,18 @@ export class SimulatorConnection extends fabric.Line {
     }
 
     toExportJson(): ConnectionI {
+        const dx = this.x2 - this.x1;
+        const dy = this.y2 - this.y1;
+        const distance = Math.sqrt(dx * dx + dy * dy); // Distance in canvas units
+        const distanceInKm = (distance / 1000).toFixed(2); // Assuming 1 canvas unit = 1 meter
+
         return {
             "from": this.metaData.from.name,
             "to": this.metaData.to?.name,
             "bandwidth": 1000,
             "latency": 10,
-            "length": 10,
-            "loss_per_km": 0.1,
+            "length": parseFloat(distanceInKm), // Distance in kilometers
+            "loss_per_km": this.metaData.lossPerKm || 0.1,
             "noise_model": "default",
             "name": `${this.metaData.from.name}-${this.metaData.to?.name}`
         }

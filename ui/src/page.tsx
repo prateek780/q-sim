@@ -16,22 +16,40 @@ import { SimulationLogsPanel } from "./components/metrics/simulation-logs"
 // import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner"
+import { ActiveLabIndicator } from "./components/labs/active-lab-indicator"
+import { ExerciseI } from "./components/labs/exercise /exercise"
+import { EXERCISES } from "./components/labs/exercise "
+import { ConnectionManager } from "./components/node/connections/connectionManager"
 
 export default function QuantumNetworkSimulator() {
   const [selectedNode, setSelectedNode] = useState(null)
   const [isSimulationRunning, setIsSimulationRunning] = useState(false)
   const [simulationSpeed, setSimulationSpeed] = useState(1)
   const [currentTime, setCurrentTime] = useState(0)
+  const [simulationState, setSimulationState] = useState(0)
+  const [activeLabObject, setActiveLabObject] = useState<ExerciseI | null>(null)
   const [activeMessages, setActiveMessages] = useState<{ id: string; source: string; target: string; content: any; protocol: string; startTime: number; duration: number }[]>([])
+
+  // Lab-related state
+  const [activeLab, setActiveLab] = useState<string | null>(null)
+  const [labProgress, setLabProgress] = useState(0)
+  const [completedLabs, setCompletedLabs] = useState<string[]>([])
 
   // Reference to the NetworkCanvas component
   const networkCanvasRef = useRef(null)
 
+  useEffect(() => {
+    setTimeout(() => {
+      registerConnectionCallback();
+    }, 5000);
+  }, []);
+
   // Update simulation time when running
   useEffect(() => {
+    triggerLabCheck();
     if (!isSimulationRunning) {
       api.getSimulationStatus().then((status) => {
-        if(status.is_running) {
+        if (status.is_running) {
           setIsSimulationRunning(true);
         }
       });
@@ -59,6 +77,18 @@ export default function QuantumNetworkSimulator() {
 
     // Log to console (for debugging)
     console.log(`Sending message: ${source} -> ${target} (${protocol})`, content)
+    triggerLabCheck();
+  }
+
+  const triggerLabCheck = () => {
+    setActiveLab((currentActiveLab) => {
+      if (!currentActiveLab) return currentActiveLab;
+
+      setSimulationState((prev) => prev + 1);
+      console.log("Simulation state updated:", simulationState);
+
+      return currentActiveLab;
+    });
   }
 
   // Clean up completed messages
@@ -74,6 +104,18 @@ export default function QuantumNetworkSimulator() {
       setActiveMessages(newActiveMessages)
     }
   }, [currentTime, activeMessages])
+
+  const registerConnectionCallback = () => {
+    try {
+      ConnectionManager.getInstance().onConnectionCallback((conn, from, to) => {
+        triggerLabCheck();
+      });
+    } catch (error) {
+      setTimeout(() => {
+        registerConnectionCallback();
+      }, 1500);
+    }
+  }
 
   // Handler for creating nodes from the sidebar
   const handleCreateNode = (actionType: string) => {
@@ -101,6 +143,7 @@ export default function QuantumNetworkSimulator() {
     } else {
       console.log(`No handler found for action: ${actionType}`)
     }
+    triggerLabCheck();
   }
 
   const executeSimulation = async () => {
@@ -114,6 +157,44 @@ export default function QuantumNetworkSimulator() {
     setIsSimulationRunning(!isSimulationRunning);
   }
 
+  // Handle starting a lab
+  const handleStartLab = (labId: string) => {
+    const lab = EXERCISES.find((l) => l.id === labId) || null;
+    setActiveLab(labId)
+    setLabProgress(0)
+    setActiveLabObject(lab);
+    if (lab) {
+      toast(`You've started the "${lab.title}" lab. Follow the instructions to complete it.`);
+    }
+  }
+
+  // Handle completing a lab
+  const handleCompleteLab = () => {
+    if (!activeLab) return
+
+    const lab = EXERCISES.find((l) => l.id === activeLab)
+    if (lab) {
+      // Add to completed labs if not already there
+      if (!completedLabs.includes(activeLab)) {
+        setCompletedLabs((prev) => [...prev, activeLab])
+      }
+
+      // Reset active lab
+      setActiveLab(null)
+      setLabProgress(0)
+      toast(`Congratulations! You've completed the "${lab.title}" lab.`);
+    }
+  }
+
+  // Handle lab progress update
+  const handleLabProgressUpdate = (completed: number, total: number) => {
+    setLabProgress(completed / total * 100);
+
+    if (completed === total) {
+      handleCompleteLab();
+    }
+  }
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-slate-50">
       {/* Left Sidebar */}
@@ -122,7 +203,12 @@ export default function QuantumNetworkSimulator() {
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Navigation Bar */}
-        <TopBar />
+        <TopBar
+          simulationState={simulationState}
+          onStartLab={handleStartLab}
+          completedLabs={completedLabs}
+          updateLabProgress={handleLabProgressUpdate}
+        />
 
         {/* Main Workspace */}
         <div className="flex-1 flex overflow-hidden">
@@ -140,6 +226,11 @@ export default function QuantumNetworkSimulator() {
               activeMessages={activeMessages}
 
             />
+
+            {/* Active Lab Indicator */}
+            {activeLabObject && (
+              <ActiveLabIndicator activeLab={activeLabObject} progress={labProgress} />
+            )}
 
             {/* Simulation Controls Overlay */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">

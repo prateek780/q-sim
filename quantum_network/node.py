@@ -27,7 +27,7 @@ class QuantumNode(Node):
         self.qmemory = None  # Consider adding qmemory for qbits
         self.qmemeory_buffer = Queue()
         
-    def receive_qbit(self, qbit):
+    def receive_qubit(self, qbit):
         self.qmemeory_buffer.put(qbit)
         
     def set_qmemory(self, qbit):

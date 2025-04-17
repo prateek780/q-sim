@@ -180,7 +180,7 @@ export class NetworkManager {
         return mergedNetwork;
     }
 
-    private deleteNetwork(network: ClassicalNetwork) {
+    deleteNetwork(network: ClassicalNetwork) {
         this.existingNetworks.delete(network);
         this.canvas.remove(network);
     }
@@ -224,5 +224,14 @@ export class NetworkManager {
 
     getAllNetworks(): ClassicalNetwork[] {
         return Array.from(this.existingNetworks.values());
+    }
+
+    deleteAllNetworks() {
+        this.existingNetworks.forEach(network => {
+            this.canvas.remove(network);
+        });
+        this.existingNetworks.clear();
+        this.logger.debug("Deleted all networks.");
+        this.canvas.requestRenderAll();
     }
 }
