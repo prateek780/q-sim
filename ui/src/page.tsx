@@ -20,6 +20,7 @@ import { ActiveLabIndicator } from "./components/labs/active-lab-indicator"
 import { ExerciseI } from "./components/labs/exercise /exercise"
 import { EXERCISES } from "./components/labs/exercise "
 import { ConnectionManager } from "./components/node/connections/connectionManager"
+import { AIAgentsModal } from "./components/ai-agents/ai-agents-modal"
 
 export default function QuantumNetworkSimulator() {
   const [selectedNode, setSelectedNode] = useState(null)
@@ -34,6 +35,9 @@ export default function QuantumNetworkSimulator() {
   const [activeLab, setActiveLab] = useState<string | null>(null)
   const [labProgress, setLabProgress] = useState(0)
   const [completedLabs, setCompletedLabs] = useState<string[]>([])
+
+  // State variable for the AI panel
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false)
 
   // Reference to the NetworkCanvas component
   const networkCanvasRef = useRef(null)
@@ -208,6 +212,7 @@ export default function QuantumNetworkSimulator() {
           onStartLab={handleStartLab}
           completedLabs={completedLabs}
           updateLabProgress={handleLabProgressUpdate}
+          onOpenAIPanel={() => setIsAIPanelOpen(true)}
         />
 
         {/* Main Workspace */}
@@ -279,6 +284,8 @@ export default function QuantumNetworkSimulator() {
           <SimulationTimeline currentTime={currentTime} onTimeChange={setCurrentTime} isRunning={isSimulationRunning} />
         </div> */}
       </div>
+      {/* Add the AI Agents modal just before the closing div of the main component */}
+      <AIAgentsModal isOpen={isAIPanelOpen} onClose={() => setIsAIPanelOpen(false)} />
     </div>
   )
 }

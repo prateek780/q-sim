@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown, ZoomIn, ZoomOut, RotateCcw, Beaker, Check } from "lucide-react"
+import { ChevronDown, ZoomIn, ZoomOut, RotateCcw, Beaker, Check, Bot } from "lucide-react"
 import { downloadJson, exportToJSON } from "@/services/exportService"
 import api from "@/services/api"
 import { useState } from "react"
@@ -20,13 +20,15 @@ interface TopBarProps {
   completedLabs?: string[]
   simulationState: any
   updateLabProgress: (completed: number, total: number) => void
+  onOpenAIPanel?: () => void
 }
 
 export function TopBar({
   onStartLab = () => { },
   completedLabs = [],
   simulationState,
-  updateLabProgress
+  updateLabProgress,
+  onOpenAIPanel = () => { },
 }: TopBarProps
 ) {
   const [isLabPanelOpen, setIsLabPanelOpen] = useState(false)
@@ -169,6 +171,11 @@ export function TopBar({
               <ZoomIn className="h-4 w-4" />
             </Button>
           </div>
+
+          <Button size="sm" className="h-8 gap-1" onClick={onOpenAIPanel}>
+            <Bot className="h-4 w-4" />
+            AI Agents
+          </Button>
 
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <RotateCcw className="h-4 w-4" />
