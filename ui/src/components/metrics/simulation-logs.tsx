@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Info, CheckCircle, Search } from "lucide-react"
-import socket, { SocketIOClient } from "@/services/socket";
+import { WebSocketClient } from "@/services/socket";
 import { convertEventToLog } from "./log-parser";
 import { Input } from "../ui/input";
 
@@ -16,7 +16,7 @@ export interface LogI {
 
 export function SimulationLogsPanel() {
   
-  const socket = SocketIOClient.getInstance();
+  const socket = WebSocketClient.getInstance();
   
   const [logFilter, setLogFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")

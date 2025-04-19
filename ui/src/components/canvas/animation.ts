@@ -2,7 +2,7 @@ import * as fabric from 'fabric';
 import { ConnectionManager } from '../node/connections/connectionManager';
 import { NetworkManager } from '../node/network/networkManager';
 import { SimulatorNode } from '../node/base/baseNode';
-import { SocketEvents, SocketIOClient } from '@/services/socket';
+import { WebSocketClient, SocketEvents } from '@/services/socket';
 import { getLogger } from '@/helpers/simLogger';
 import { TransmiTPacketI } from '@/services/socket.interface';
 import { toast } from "sonner"
@@ -33,7 +33,7 @@ export class NetworkAnimationController {
         this.activeAnimations = new Map();
         this.animationSpeed = 1.0;
 
-        SocketIOClient.getInstance().onMessage(SocketEvents.SimulationEvent, (event) => {
+        WebSocketClient.getInstance().onMessage(SocketEvents.SimulationEvent, (event) => {
             this.processEvent(event);
         })
 
@@ -72,8 +72,8 @@ export class NetworkAnimationController {
                 // return this.animateQKDInitiation(event);
                 break
             case 'classical_data_received':
-                
-            this.activeAnimationsByType.get(AnimationType.Q_CLASSICAL_DATA)?.push(event);
+
+                this.activeAnimationsByType.get(AnimationType.Q_CLASSICAL_DATA)?.push(event);
                 // return this.animateClassicalDataReceived(event);
                 break;
             default:
@@ -93,12 +93,12 @@ export class NetworkAnimationController {
 
                         try {
                             const parsed = convertEventToLog(event);
-                            if(parsed?.message)
-                            toast(parsed?.message);
+                            if (parsed?.message)
+                                toast(parsed?.message);
                         } catch (_) {
                             this.logger.error(_);
                         }
-                        
+
                         switch (eventType) {
                             case 'packet_transmitted':
                                 return this.animatePacketTransmission(event);
@@ -143,7 +143,7 @@ export class NetworkAnimationController {
 
             const toNode = this.findNodeByName(this.extractNodeName(toName));
 
-            
+
             if (!fromNode || !toNode) {
                 this.logger.warn("Could not find nodes for animation \n[ ", fromName, '(', fromNode?.name, ')\n', toName, '(', toNode?.name, ')]');
                 return null;

@@ -1,19 +1,12 @@
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional, Dict, Any
 import yaml
 import os
 from pathlib import Path
 
-class LLMConfig(BaseModel):
-    provider: str = "openai"
-    model: str = "gpt-4"
-    api_key: SecretStr
-    base_url: str = "https://api.openai.com/v1"
-    timeout: int = 60
-    temperature: float = Field(0.2, ge=0.0, le=1.0)
-    max_tokens: Optional[int] = 1000
-    retry_attempts: int = 3
+from config.data_config import RedisConfig
+from config.llm_config import LLMConfig
+
 
 class LoggingConfig(BaseModel):
     level: str = "INFO"
@@ -22,6 +15,7 @@ class LoggingConfig(BaseModel):
 class AppConfig(BaseSettings):
     llm: LLMConfig
     logging: LoggingConfig
+    redis: RedisConfig
     
     model_config = SettingsConfigDict(env_nested_delimiter='__')
     
@@ -44,6 +38,7 @@ class AppConfig(BaseSettings):
         config_dict = yaml.safe_load(yaml_str)
         return cls(**config_dict)
 
-def load_config(config_path: str = "ai_agent/config/llm_config.yaml") -> AppConfig:
+def load_config(config_path: str = "config/config.yaml") -> AppConfig:
+    config_path = os.getenv("CONFIG_PATH", config_path)
     """Load application configuration."""
     return AppConfig.from_yaml(config_path)

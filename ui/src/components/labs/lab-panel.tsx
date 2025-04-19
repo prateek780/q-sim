@@ -14,7 +14,7 @@ import { getLogger } from "@/helpers/simLogger"
 import { manager } from "../node/nodeManager"
 import { ConnectionManager } from "../node/connections/connectionManager"
 import { getSimulationNodeTypeString } from "../node/base/enums"
-import { SocketIOClient } from "@/services/socket"
+import { WebSocketClient } from "@/services/socket"
 
 interface LabPanelProps {
   isOpen: boolean
@@ -89,7 +89,7 @@ export function LabPanel({ isOpen, onClose, onStartLab, simulationState, updateL
       });
     })
 
-    const socket = SocketIOClient.getInstance();
+    const socket = WebSocketClient.getInstance();
     const messagesSent = !requirements.messages || (socket.simulationEventLogs.length ?? 0) >= requirements.messages
 
     const totalRequirements = requirements.nodes.length + requirements.connections.length + (requirements.messages ? 1 : 0);

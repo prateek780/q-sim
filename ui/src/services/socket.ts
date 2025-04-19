@@ -1,225 +1,301 @@
-import { io, Socket, ManagerOptions, SocketOptions } from 'socket.io-client';
-
+// Define types for WebSocket event handlers
 type MessageHandler = (data: any) => void;
-type ErrorHandler = (error: any) => void;
-type ConnectHandler = () => void;
-type DisconnectHandler = (reason: string) => void;
+type ErrorHandler = (event: Event) => void; // WebSocket errors provide an Event object
+type OpenHandler = () => void;
+type CloseHandler = (event: CloseEvent) => void; // Close provides a CloseEvent (code, reason)
 
-
+// Keep your custom events enum
 export enum SocketEvents {
-    SimulationEvent = 'simulation_event'
+    SimulationEvent = 'simulation_event',
+    // Add other specific event names your server might send
+    ServerResponse = 'server_response' // Example based on previous Python code
 }
 
 /**
- * Singleton SocketIO client
+ * Singleton WebSocket client using standard browser WebSocket API
  */
-export class SocketIOClient {
-    private static instance: SocketIOClient;
-    private socket: Socket | null = null;
+export class WebSocketClient {
+    private static instance: WebSocketClient;
+    private ws: WebSocket | null = null;
+    // Map event names (from server messages) to handlers
     private messageHandlers: Map<string, MessageHandler[]> = new Map();
-    private connectHandlers: ConnectHandler[] = [];
-    private disconnectHandlers: DisconnectHandler[] = [];
+    private openHandlers: OpenHandler[] = [];
+    private closeHandlers: CloseHandler[] = [];
     private errorHandlers: ErrorHandler[] = [];
-    private url: string | undefined = '';
-    private options: Partial<ManagerOptions & SocketOptions> = {};
-    private _connecting = false;
-    simulationEventLogs: any[] = [];
+    private url: string = ''; // Use ws:// or wss://
+    private _connecting: boolean = false;
+    private _connectionPromise: { resolve: () => void; reject: (reason?: any) => void; } | null = null;
+
+    public simulationEventLogs: any[] = []; // Keep your specific state
 
     /**
      * Private constructor to prevent direct instantiation
      */
     private constructor() {
-        // Store Messages in Memory
+        // Store SimulationEvent messages in Memory
+        // This now uses the internal routing based on the event name in the message
         this.onMessage(SocketEvents.SimulationEvent, (data) => {
+            // console.log('Received Simulation Event:', data); // Optional logging
             this.simulationEventLogs.push(data);
-        })
+        });
     }
 
     /**
      * Get singleton instance
      */
-    public static getInstance(): SocketIOClient {
-        if (!SocketIOClient.instance) {
-            SocketIOClient.instance = new SocketIOClient();
+    public static getInstance(): WebSocketClient {
+        if (!WebSocketClient.instance) {
+            WebSocketClient.instance = new WebSocketClient();
         }
-        return SocketIOClient.instance;
+        return WebSocketClient.instance;
     }
 
     /**
-     * Connect to Socket.IO server
-     * 
-     * @param url Server URL
-     * @param options Connection options
+     * Connect to the WebSocket server
+     *
+     * @param url Server URL (must start with ws:// or wss://)
      * @returns Promise that resolves when connected
      */
-    public connect(
-        url: string | undefined,
-        options: Partial<ManagerOptions & SocketOptions> = {}
-    ): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (this.socket?.connected || this._connecting) {
-                return resolve();
-            }
-            this._connecting = true;
+    public connect(url: string): Promise<void> {
+        // Check current state
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            console.log('WebSocket already connected.');
+            return Promise.resolve();
+        }
+        if (this._connecting || (this.ws && this.ws.readyState === WebSocket.CONNECTING)) {
+            console.log('WebSocket connection attempt already in progress.');
+            // Return the existing promise if available
+            return new Promise((res, rej) => {
+                if (this._connectionPromise) {
+                     // This isn't perfect, as multiple callers might wait,
+                     // but it prevents multiple connection attempts.
+                     this._connectionPromise.resolve = () => { this._connectionPromise = null; res(); };
+                     this._connectionPromise.reject = (reason) => { this._connectionPromise = null; rej(reason); };
+                } else {
+                    // Should not happen if _connecting is true, but as fallback:
+                     rej(new Error("Connection in progress, but promise lost"));
+                }
+            });
+        }
 
-            this.url = url;
-            this.options = options;
+        // Validate URL scheme
+        if (!url || (!url.startsWith('ws://') && !url.startsWith('wss://'))) {
+            console.error('Invalid WebSocket URL. Must start with ws:// or wss://');
+            return Promise.reject(new Error('Invalid WebSocket URL scheme.'));
+        }
+
+        this.url = url;
+        this._connecting = true;
+
+        return new Promise<void>((resolve, reject) => {
+            console.log(`Attempting to connect WebSocket to ${this.url}...`);
+            this._connectionPromise = { resolve, reject }; // Store promise controllers
 
             try {
-                this.socket = io(url, options);
+                this.ws = new WebSocket(this.url);
 
-                this.socket.on('connect', () => {
-                    console.log('Socket connected');
-                    this.connectHandlers.forEach(handler => handler());
+                this.ws.onopen = () => {
+                    console.log('WebSocket connected successfully.');
                     this._connecting = false;
-                    resolve();
-                });
+                    this.openHandlers.forEach(handler => handler());
+                    if (this._connectionPromise) {
+                        this._connectionPromise.resolve(); // Resolve the promise
+                        this._connectionPromise = null;
+                    }
+                };
 
-                this.socket.on('disconnect', (reason) => {
-                    console.log(`Socket disconnected: ${reason}`);
-                    this.disconnectHandlers.forEach(handler => handler(reason));
+                this.ws.onclose = (event: CloseEvent) => {
+                    console.log(`WebSocket disconnected: Code=${event.code}, Reason=${event.reason}, WasClean=${event.wasClean}`);
                     this._connecting = false;
-                });
+                    this.closeHandlers.forEach(handler => handler(event));
+                    // If connection promise was pending and connection failed:
+                    if (this._connectionPromise) {
+                        this._connectionPromise.reject(new Error(`WebSocket closed before opening: Code=${event.code}`));
+                        this._connectionPromise = null;
+                    }
+                    this.ws = null; // Clear the instance on close
+                };
 
-                this.socket.on('connect_error', (error) => {
-                    console.error('Connection error:', error);
-                    this.errorHandlers.forEach(handler => handler(error));
+                this.ws.onerror = (event: Event) => {
+                    console.error('WebSocket error:', event);
                     this._connecting = false;
-                    reject(error);
-                });
+                    this.errorHandlers.forEach(handler => handler(event));
+                    // If connection promise was pending and connection failed:
+                    if (this._connectionPromise) {
+                        this._connectionPromise.reject(new Error('WebSocket connection error.'));
+                        this._connectionPromise = null;
+                    }
+                    // Note: onerror is often followed by onclose
+                };
 
-                // Set up message handlers from the map
-                this.messageHandlers.forEach((handlers, event) => {
-                    this.socket?.on(event, (data) => {
-                        handlers.forEach(handler => handler(data));
-                    });
-                });
+                this.ws.onmessage = (event: MessageEvent) => {
+                    // console.log('Raw message received:', event.data); // Debugging
+                    try {
+                        // Assuming server sends JSON strings
+                        const messageData = JSON.parse(event.data);
+
+                        // Check the expected format { event: string, data: any }
+                        if (messageData && typeof messageData.event === 'string' && messageData.hasOwnProperty('data')) {
+                            const eventName = messageData.event;
+                            const payload = messageData.data;
+
+                            // Find handlers for this specific event name
+                            const handlers = this.messageHandlers.get(eventName);
+                            if (handlers && handlers.length > 0) {
+                                // console.log(`Dispatching event "${eventName}" to ${handlers.length} handlers.`);
+                                handlers.forEach(handler => {
+                                    try {
+                                        handler(payload);
+                                    } catch (handlerError) {
+                                        console.error(`Error in message handler for event "${eventName}":`, handlerError);
+                                    }
+                                });
+                            } else {
+                                // console.warn(`No message handlers registered for event: ${eventName}`);
+                            }
+                        } else {
+                            console.warn('Received message does not match expected format {event, data}:', messageData);
+                            // Optionally handle messages not matching the format differently
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse incoming WebSocket message or invalid format:', event.data, e);
+                    }
+                };
+
             } catch (error) {
-                console.error('Failed to create socket:', error);
-                reject(error);
+                console.error('Failed to create WebSocket:', error);
+                this._connecting = false;
+                 if (this._connectionPromise) {
+                     this._connectionPromise.reject(error); // Reject the promise
+                     this._connectionPromise = null;
+                 }
             }
         });
     }
 
     /**
-     * Reconnect to the server using the same URL and options
+     * Reconnect to the server using the same URL.
      */
     public reconnect(): Promise<void> {
-        if (this.socket) {
-            this.socket.disconnect();
-        }
-        return this.connect(this.url, this.options);
+        console.log("Attempting WebSocket reconnect...");
+        this.disconnect(); // Ensure previous connection is closed
+        // Add a small delay before reconnecting if desired
+        // await new Promise(resolve => setTimeout(resolve, 1000));
+        return this.connect(this.url);
     }
 
     /**
-     * Disconnect from the server
+     * Disconnect from the server.
      */
     public disconnect(): void {
-        if (this.socket) {
-            this.socket.disconnect();
-            this.socket = null;
+        if (this.ws) {
+            console.log("Closing WebSocket connection.");
+            this.ws.close();
+            // Handlers (onclose) will manage setting ws to null
+        }
+        this._connecting = false;
+        this._connectionPromise = null; // Clear any pending promise
+    }
+
+    /**
+     * Send data payload to the server.
+     * Assumes the backend expects the raw JSON data.
+     *
+     * @param data Data to send (must be JSON serializable)
+     */
+    public send(data: any): void {
+        if (!this.isConnected()) {
+            console.error('WebSocket not connected. Cannot send data.');
+            // Optional: throw new Error('WebSocket not connected');
+            return;
+        }
+
+        try {
+            const messageString = JSON.stringify(data);
+            this.ws?.send(messageString);
+            // console.log('Sent data:', data); // Debug logging
+        } catch (error) {
+            console.error('Failed to send WebSocket message:', error);
+            // Optional: throw error;
         }
     }
 
     /**
-     * Send a message to the server
-     * 
-     * @param event Event name
-     * @param data Data to send
-     * @returns Promise that resolves when the message is acknowledged, or void if no ack
-     */
-    public send<T = any>(
-        event: string,
-        data?: any
-    ): Promise<T | void> {
-        return new Promise((resolve, reject) => {
-            if (!this.socket || !this.socket.connected) {
-                reject(new Error('Socket not connected'));
-                return;
-            }
-
-            this.socket.emit(event, data, (response: T) => {
-                resolve(response);
-            });
-        });
-    }
-
-    /**
-     * Register a handler for a specific message event
-     * 
-     * @param event Event name
+     * Register a handler for a specific event name received from the server.
+     *
+     * @param eventName The 'event' string from the server message structure {event, data}
      * @param handler Handler function
      */
-    public onMessage(event: SocketEvents | string, handler: MessageHandler): void {
-        if (!this.messageHandlers.has(event)) {
-            this.messageHandlers.set(event, []);
-
-            // If socket exists, add the event listener
-            if (this.socket) {
-                this.socket.on(event, (data) => {
-                    const handlers = this.messageHandlers.get(event) || [];
-                    handlers.forEach(h => h(data));
-                });
-            }
+    public onMessage(eventName: SocketEvents | string, handler: MessageHandler): void {
+        if (!this.messageHandlers.has(eventName)) {
+            this.messageHandlers.set(eventName, []);
         }
-
-        const handlers = this.messageHandlers.get(event) || [];
-        handlers.push(handler);
-        this.messageHandlers.set(event, handlers);
+        const handlers = this.messageHandlers.get(eventName)!; // Assert non-null with !
+        if (!handlers.includes(handler)) { // Avoid duplicate handlers
+             handlers.push(handler);
+        }
     }
 
     /**
-     * Remove a specific handler for a message event
-     * 
-     * @param event Event name
+     * Remove a specific handler for a message event name.
+     *
+     * @param eventName The 'event' string
      * @param handler Handler to remove
      */
-    public offMessage(event: string, handler: MessageHandler): void {
-        if (!this.messageHandlers.has(event)) return;
+    public offMessage(eventName: string, handler: MessageHandler): void {
+        const handlers = this.messageHandlers.get(eventName);
+        if (!handlers) return;
 
-        const handlers = this.messageHandlers.get(event) || [];
         const index = handlers.indexOf(handler);
-
         if (index !== -1) {
             handlers.splice(index, 1);
-            this.messageHandlers.set(event, handlers);
+            // Optional: if handlers array is empty, remove the map entry
+            // if (handlers.length === 0) {
+            //     this.messageHandlers.delete(eventName);
+            // }
         }
     }
 
     /**
-     * Register a connection handler
-     * 
+     * Register an open/connection handler.
+     *
      * @param handler Handler function
      */
-    public onConnect(handler: ConnectHandler): void {
-        this.connectHandlers.push(handler);
+    public onOpen(handler: OpenHandler): void {
+         if (!this.openHandlers.includes(handler)) {
+             this.openHandlers.push(handler);
+         }
     }
 
     /**
-     * Register a disconnect handler
-     * 
+     * Register a close/disconnect handler.
+     *
      * @param handler Handler function
      */
-    public onDisconnect(handler: DisconnectHandler): void {
-        this.disconnectHandlers.push(handler);
+    public onClose(handler: CloseHandler): void {
+         if (!this.closeHandlers.includes(handler)) {
+             this.closeHandlers.push(handler);
+         }
     }
 
     /**
-     * Register an error handler
-     * 
+     * Register an error handler.
+     *
      * @param handler Handler function
      */
     public onError(handler: ErrorHandler): void {
-        this.errorHandlers.push(handler);
+         if (!this.errorHandlers.includes(handler)) {
+             this.errorHandlers.push(handler);
+         }
     }
 
     /**
-     * Check if socket is connected
+     * Check if the WebSocket is currently connected (OPEN state).
      */
     public isConnected(): boolean {
-        return !!(this.socket && this.socket.connected);
+        return !!(this.ws && this.ws.readyState === WebSocket.OPEN);
     }
 }
 
-// Export a default instance
-export default SocketIOClient.getInstance();
+// Export a default singleton instance
+// export default WebSocketClient.getInstance();

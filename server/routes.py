@@ -1,42 +1,63 @@
 import os
-from flask import Blueprint, request, Response, Flask, send_from_directory
+from fastapi import APIRouter, FastAPI, Request, Response
+# from flask import Blueprint, request, Response, Flask, send_from_directory
+from fastapi.responses import StreamingResponse
+import httpx
 import requests
 
 
 def proxy_to_live_app(app):
     REACT_DEV_SERVER_URL = "http://localhost:5173"
+    async_client = httpx.AsyncClient(base_url=REACT_DEV_SERVER_URL)
 
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
-    def proxy(path):
+    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+    async def proxy_to_react(path: str, request: Request):
         """
         Proxies requests to the React development server.
         """
-        url = f"{REACT_DEV_SERVER_URL}/{path}"
-        resp = requests.request(
+        # Construct the target URL within the React dev server
+        # httpx handles joining the base_url with the relative path
+        url = httpx.URL(path=f"/{path}", query=request.url.query.encode("utf-8"))
+
+        # Prepare the request for forwarding
+        fwd_request = async_client.build_request(
             method=request.method,
             url=url,
-            headers={key: value for (key, value) in request.headers if key != "Host"},
-            data=request.get_data(),
+            headers={k: v for k, v in request.headers.items() if k.lower() != 'host'}, # Exclude host header
+            content=await request.body(), # Read the request body
             cookies=request.cookies,
-            allow_redirects=False,
         )
 
-        excluded_headers = [
-            "content-encoding",
-            "content-length",
-            "transfer-encoding",
-            "connection",
-        ]
-        headers = [
-            (name, value)
-            for (name, value) in resp.raw.headers.items()
-            if name.lower() not in excluded_headers
-        ]
+        try:
+            # Send the request to the React dev server
+            resp = await async_client.send(fwd_request, stream=True, follow_redirects=False)
 
-        response = Response(resp.content, resp.status_code, headers)
-        return response
+            # Prepare headers for the client response (filter excluded headers)
+            excluded_headers = {
+                "content-encoding",
+                "content-length", # StreamingResponse calculates this
+                "transfer-encoding",
+                "connection",
+            }
+            response_headers = {
+                name: value
+                for (name, value) in resp.headers.items()
+                if name.lower() not in excluded_headers
+            }
 
+            # Use StreamingResponse to efficiently forward the content
+            return StreamingResponse(
+                content=resp.aiter_bytes(), # Async iterator for the response body
+                status_code=resp.status_code,
+                headers=response_headers,
+                media_type=resp.headers.get("content-type"), # Forward the original content type
+            )
+
+        except httpx.RequestError as e:
+            # Handle errors connecting to the dev server (e.g., server not running)
+            error_message = f"Proxy error: Unable to connect to React dev server at {REACT_DEV_SERVER_URL}. Error: {e}"
+            print(f"[PROXY ERROR] {error_message}") # Log the error
+            return Response(content=error_message, status_code=502) # Bad Gateway
 
 
 REACT_BUILD_FOLDER = "/home/sahil/QUANTUM/network_simulator_project/simulator_1/ui/dist"
@@ -63,24 +84,29 @@ def serve_dist(app):
     def serve_assets(path):
         return send_from_directory(os.path.join(REACT_BUILD_FOLDER, 'assets'), path)
 
-def register_blueprints(app: Flask):
-    api_blueprint = Blueprint("api", __name__, url_prefix="/api")
+def register_blueprints(app: FastAPI):
+    # Create the main router for the /api prefix
+    api_router = APIRouter(
+        prefix="/api",
+        tags=["API Root"] # Optional: Helps organize docs
+    )
     
-    from server.api.topology.blueprint import topology_api
-    api_blueprint.register_blueprint(topology_api)
-
-    from server.api.simulation.simulation import simulation_api
-    api_blueprint.register_blueprint(simulation_api)
+    from server.api.topology.topology import topology_router
+    api_router.include_router(topology_router) 
 
 
-    @api_blueprint.get("/")
+    from server.api.simulation.simulation import simulation_router
+    api_router.include_router(simulation_router) 
+
+
+    @api_router.get("/")
     def check():
         return Response("null")
     
-    app.register_blueprint(api_blueprint)
+    app.include_router(api_router)
 
 
-def register_routes(app: Flask):
+def register_routes(app: FastAPI):
     register_blueprints(app)
     if os.getenv('SERVE_DIST'):
         print("Serve UI Build")

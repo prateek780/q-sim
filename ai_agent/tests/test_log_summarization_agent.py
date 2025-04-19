@@ -7,7 +7,7 @@ import os
 # Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.llm_config import load_config
+from config.config import load_config
 from src.agents.log_summarization_agent import LogSummarizationAgent
 from langchain_openai import ChatOpenAI
 
