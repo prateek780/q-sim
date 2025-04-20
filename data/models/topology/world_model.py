@@ -1,5 +1,5 @@
 """World model for network simulation"""
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List, Tuple, Dict, Any, Optional, Union
 from redis_om import JsonModel, Field as RedisField, Migrator
 
 from data.models.connection.redis import get_redis_conn
@@ -14,8 +14,9 @@ class WorldModal(JsonModel):
     class Meta:
         global_key_prefix = "network-sim"
         model_key_prefix = "world"
+        database = get_redis_conn()
 
-def save_world_to_redis(world_data: Dict[str, Any]) -> str:
+def save_world_to_redis(world: Union[Dict[str, Any], WorldModal]) -> str:
     """Save world data to Redis"""
     # Ensure we have a connection
     get_redis_conn()
@@ -24,7 +25,8 @@ def save_world_to_redis(world_data: Dict[str, Any]) -> str:
     Migrator().run()
     
     # Create World instance
-    world = WorldModal(**world_data)
+    if isinstance(world, dict):
+        world = WorldModal(**world)
     
     # Save to Redis
     world.save()

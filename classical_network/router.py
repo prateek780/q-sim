@@ -4,7 +4,7 @@ from classical_network.enum import PacketType
 from classical_network.node import ClassicalNode
 from classical_network.packet import ClassicDataPacket
 from core.base_classes import World, Zone
-from core.enums import NodeType
+from core.enums import NodeType, SimulationEventType
 from core.exceptions import NotConnectedError
 from core.network import Network
 from classical_network.routing import InternetExchange, RouteTable
@@ -57,7 +57,7 @@ class ClassicalRouter(ClassicalNode):
         packet.append_hop(self)
         if packet.type == PacketType.DATA:
             self.route_packet(packet)
-            self._send_update("packet_received", packet=packet)
+            self._send_update(SimulationEventType.PACKET_RECEIVED, packet=packet)
 
     def route_packet(self, packet: ClassicDataPacket):
         direct_connection = self.get_connection(self, packet.to_address)
@@ -81,7 +81,7 @@ class ClassicalRouter(ClassicalNode):
             raise NotConnectedError(self, next_hop)
 
         next_connection.transmit_packet(packet)
-        self._send_update("packet_routed", packet=packet)
+        self._send_update(SimulationEventType.PACKET_ROUTED, packet=packet)
 
     def __name__(self):
         return f"Router - '{self.name}'"

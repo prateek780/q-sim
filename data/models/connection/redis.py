@@ -1,4 +1,5 @@
 """Redis connection module for network simulation"""
+import os
 from redis.client import Redis
 from redis_om import get_redis_connection
 
@@ -7,12 +8,13 @@ from config.config import load_config
 # Global Redis connection
 _redis_connection = None
 
-def get_redis_conn(host: str = "localhost", port: int = 6379, db: int = 0) -> Redis:
+def get_redis_conn() -> Redis:
     """Get or create Redis connection (singleton pattern)"""
     global _redis_connection
     if _redis_connection is None:
         config = load_config()
         redis_config = config.redis
+        print(f"Attempting to create Redis pool for: {redis_config.host}:{redis_config.port} DB: {redis_config.db}")
         _redis_connection = Redis(
             host=redis_config.host,
             port=redis_config.port,
@@ -21,6 +23,11 @@ def get_redis_conn(host: str = "localhost", port: int = 6379, db: int = 0) -> Re
             db=redis_config.db,
             decode_responses=True,
         )
+        if _redis_connection.ping():
+            print("Connected to Redis")
+        else:
+            raise Exception("Failed to connect to Redis")
         # Configure redis-om to use our connection
-        get_redis_connection(client=_redis_connection)
+        redis_url = f"redis://{redis_config.username}:{redis_config.password.get_secret_value()}@{redis_config.host}:{redis_config.port}/{redis_config.db}"
+        os.environ["REDIS_OM_URL"] = redis_url
     return _redis_connection

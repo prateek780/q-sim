@@ -3,7 +3,7 @@ import time
 from typing import Any, Callable, List, Tuple
 import qutip as qt
 from core.base_classes import World, Zone
-from core.enums import NodeType
+from core.enums import NodeType, SimulationEventType
 from core.exceptions import QuantumChannelDoesNotExists
 from core.network import Network
 from quantum_network.channel import QuantumChannel
@@ -140,7 +140,7 @@ class QuantumHost(QuantumNode):
         elif message['type'] == 'shared_bases_indices':
             self.update_shared_bases_indices(message['data'])
             
-        self._send_update("classical_data_received", message=message)
+        self._send_update(SimulationEventType.DATA_RECEIVED, message=message)
             
     def update_shared_bases_indices(self, shared_base_indices):
         self.shared_bases_indices = shared_base_indices

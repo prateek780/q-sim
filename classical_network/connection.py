@@ -1,6 +1,7 @@
 from classical_network.node import ClassicalNode
 from classical_network.packet import ClassicDataPacket
 from core.base_classes import Sobject
+from core.enums import SimulationEventType
 from core.exceptions import NotConnectedError
 
 
@@ -27,5 +28,5 @@ class ClassicConnection(Sobject):
         else:
             raise NotConnectedError(packet.hops[-1], packet.next_hop)
 
-        self._send_update("packet_transmitted", packet=packet)
+        self._send_update(SimulationEventType.PACKET_TRANSMITTED, packet=packet)
 

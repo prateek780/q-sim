@@ -7,7 +7,7 @@ from classical_network.enum import PacketType
 from classical_network.packet import ClassicDataPacket
 from classical_network.router import ClassicalRouter
 from core.base_classes import Node, World, Zone
-from core.enums import NodeType, NetworkType
+from core.enums import NodeType, NetworkType, SimulationEventType
 from core.exceptions import (
     DefaultGatewayNotFound,
     NotConnectedError,
@@ -104,7 +104,7 @@ class QuantumAdapter(Node):
         # Initiate QKD with the paired adapter
         if self.paired_adapter:
             self.local_quantum_host.perform_qkd()
-            self._send_update("qkd_initiated", with_adapter=self.paired_adapter)
+            self._send_update(SimulationEventType.QKD_INITIALIZED, with_adapter=self.paired_adapter)
         else:
             self.logger.debug(f"{self.name} has no paired adapter to perform QKD.")
             raise PairAdapterDoesNotExists(self)
@@ -138,7 +138,7 @@ class QuantumAdapter(Node):
             else:
                 # Otherwise, forward the packet normally
                 self.forward_packet(packet, self.paired_adapter.local_classical_router)
-        self._send_update("packet_received", packet=packet)
+        self._send_update(SimulationEventType.DATA_RECEIVED, packet=packet)
 
     def encrypt_packet(self, packet: ClassicDataPacket):
         encrypted_data = simple_xor_encrypt(packet.data, self.shared_key)

@@ -1,13 +1,20 @@
 import asyncio
 from datetime import datetime
-import json
 from pprint import pprint
 import threading
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any
 import traceback
 
 from core.base_classes import World
 from core.event import Event
+from data.models.simulation.log_model import add_log_entry
+from data.models.simulation.simulation_model import (
+    SimulationModal,
+    SimulationStatus,
+    save_simulation,
+    update_simulation_status,
+)
+from data.models.topology.world_model import WorldModal
 from json_parser import simulate_from_json
 from server.socket_server.socket_server import ConnectionManager
 
@@ -30,7 +37,7 @@ class SimulationManager:
         self.is_running = False
         self.socket_conn = ConnectionManager()
         self.current_simulation = None
-        self.simulation_data = {}
+        self.simulation_data: SimulationModal = None
         self.main_event_loop = None
 
     @classmethod
@@ -47,81 +54,75 @@ class SimulationManager:
             cls._instance.stop()
             cls._instance = None
 
-    def start_simulation(self, network_file: str) -> bool:
-        """
-        Start a new simulation if none is running
-
-        Args:
-            network_file: Path to network configuration file
-
-        Returns:
-            bool: True if simulation started, False if one is already running
-
-        Raises:
-            FileNotFoundError: If network file doesn't exist
-            json.JSONDecodeError: If network file has invalid JSON
-        """
+    def start_simulation(self, network: WorldModal) -> bool:
         if self.is_running:
             return False
 
         try:
-            # Load and validate network configuration
-            with open(network_file, "r") as f:
-                network_config = json.load(f)
-
             # Set simulation state
             self.is_running = True
-            self.simulation_data = {
-                "network_file": network_file,
-                "network_config": network_config,
-                "progress": 0,
-                "status": "running",
-                "results": None,
-                "error": None,
-            }
+            # self.simulation_data = {
+            #     "network_id": network.pk,
+            #     "network_config": network.model_dump(),
+            #     "progress": 0,
+            #     "status": "running",
+            #     "results": None,
+            #     "error": None,
+            # }
+            self.simulation_data = SimulationModal(
+                world_id=network.pk,
+                name=network.name,
+                status=SimulationStatus.PENDING,
+                start_time=datetime.now(),
+                end_time=None,
+                configuration=network,
+                metrics=None,
+            )
+            self.save_simulation = save_simulation(self.simulation_data)
             try:
                 self.main_event_loop = asyncio.get_running_loop()
                 print(f"Captured main event loop: {self.main_event_loop}")
             except RuntimeError:
-                print("CRITICAL WARNING: Could not get running loop when starting simulation. "
+                print(
+                    "CRITICAL WARNING: Could not get running loop when starting simulation. "
                     "Ensure start_simulation is called from an async context (e.g., await manager.start_simulation). "
-                    "Event broadcasting will likely fail.")
-                self.main_event_loop = None # Ensure it's None if failed
+                    "Event broadcasting will likely fail."
+                )
+                self.main_event_loop = None  # Ensure it's None if failed
             # Start the simulation process
-            self._run_simulation(network_file)
+            self._run_simulation(network)
 
             return True
 
-        except FileNotFoundError:
+        except Exception as e:
             self.emit_event(
                 "simulation_error",
-                {"message": f"Network file not found: {network_file}"},
+                {
+                    "message": f"Error starting simulation: {str(e)}",
+                    "traceback": traceback.format_exc(),
+                },
             )
             raise
 
-        except json.JSONDecodeError:
-            self.emit_event(
-                "simulation_error",
-                {"message": f"Invalid JSON in network file: {network_file}"},
-            )
-            raise
-
-    def on_update(self, event):
+    def on_update(self, event: Event) -> None:
         self.emit_event("simulation_event", event)
+        add_log_entry(
+            {
+                "simulation_id": self.simulation_data.pk,
+                "timestamp": datetime.now(),
+                "level": event.log_level,
+                "component": event.node.name,
+                "entity_type": getattr(event.node, "type", None),
+                "details": event.to_dict(),
+            }
+        )
 
-    def _run_simulation(self, network_file: str) -> None:
+    def _run_simulation(self, topology_data: WorldModal) -> None:
         """
         Run the actual simulation process
         This would be where your simulation logic lives
         """
         try:
-            # Here you would implement your actual simulation logic
-            # For example:
-            # self.current_simulation = YourSimulationClass(self.simulation_data["network_config"])
-            # self.current_simulation.on_progress = self._on_progress_update
-            # results = self.current_simulation.run()
-
-            # For now, we'll just simulate some progress events
             import time
             from threading import Thread
 
@@ -131,8 +132,13 @@ class SimulationManager:
                         "simulation_started", {"time": datetime.now().timestamp()}
                     )
 
+                    # Mark as running
+                    self.simulation_data.status = SimulationStatus.RUNNING
+                    update_simulation_status(
+                        self.simulation_data.pk, SimulationStatus.RUNNING
+                    )
                     self.simulation_world = simulate_from_json(
-                        network_file, self.on_update
+                        topology_data.model_dump(), self.on_update
                     )
 
                     while self.simulation_world.is_running:
@@ -142,9 +148,18 @@ class SimulationManager:
                         "simulation_completed",
                         {"results": self.simulation_data["results"]},
                     )
+                    self.simulation_data.status = SimulationStatus.COMPLETED
+                    update_simulation_status(
+                        self.simulation_data.pk, SimulationStatus.COMPLETED
+                    )
 
                 except Exception as e:
                     self._handle_error(e)
+                    self.simulation_data.status = SimulationStatus.FAILED
+                    update_simulation_status(
+                        self.simulation_data.pk, SimulationStatus.FAILED
+                    )
+
                 finally:
                     # Reset run state if this wasn't from an external stop
                     if self.is_running:
@@ -192,7 +207,8 @@ class SimulationManager:
             # self.current_simulation.stop()
             self.current_simulation = None
 
-        self.simulation_data["status"] = "stopped"
+        self.simulation_data.status = SimulationStatus.COMPLETED
+        update_simulation_status(self.simulation_data.pk, SimulationStatus.COMPLETED)
         self.simulation_world.stop()
 
     def get_status(self) -> Dict[str, Any]:
@@ -216,24 +232,32 @@ class SimulationManager:
         """
         # Check if we have the connection manager and the main loop reference
         if not self.socket_conn:
-            print(f"[{threading.current_thread().name}] Warning: Socket connection manager not available. Cannot emit '{event}'.")
+            print(
+                f"[{threading.current_thread().name}] Warning: Socket connection manager not available. Cannot emit '{event}'."
+            )
             return
         if not self.main_event_loop or not self.main_event_loop.is_running():
-            print(f"[{threading.current_thread().name}] Warning: Main event loop not available or not running. Cannot emit '{event}'.")
+            print(
+                f"[{threading.current_thread().name}] Warning: Main event loop not available or not running. Cannot emit '{event}'."
+            )
             return
 
         try:
             if hasattr(data, "to_dict"):
                 data = data.to_dict()
         except Exception as e:
-            print(f"[{threading.current_thread().name}] Error serializing data for event '{event}': {e}")
+            print(
+                f"[{threading.current_thread().name}] Error serializing data for event '{event}': {e}"
+            )
             pprint(data)
-            return 
+            return
 
         coro_to_run = self.socket_conn.broadcast(dict(event=event, data=data))
         future = asyncio.run_coroutine_threadsafe(coro_to_run, self.main_event_loop)
 
-        print(f"[{threading.current_thread().name}] Submitted broadcast for event '{event}' to main loop.")
+        print(
+            f"[{threading.current_thread().name}] Submitted broadcast for event '{event}' to main loop."
+        )
 
     def _handle_error(self, error: Exception) -> None:
         """

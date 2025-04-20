@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 
 class ConnectionModal(BaseModel):
     """Network connection between hosts"""
-    from_: str = Field(..., alias="from")
-    to: str
+    from_node: str
+    to_node: str
     bandwidth: int
     latency: int
     length: float

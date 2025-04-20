@@ -17,6 +17,7 @@ import { getNewNode } from "./utils";
 import { WebSocketClient } from "@/services/socket";
 import { importFromJSON } from "@/services/importService";
 import { NetworkAnimationController } from "./animation";
+import { networkStorage } from "@/services/storage";
 
 
 interface NetworkCanvasProps {
@@ -24,9 +25,10 @@ interface NetworkCanvasProps {
   isSimulationRunning: boolean
   simulationTime: number
   activeMessages?: any[]
+  topologyID: string| null
 }
 
-export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, simulationTime, activeMessages = [], }: NetworkCanvasProps, ref) => {
+export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, simulationTime, activeMessages = [],topologyID }: NetworkCanvasProps, ref) => {
   // const canvasRef = useRef<HTMLCanvasElement>(null)
   const { editor, onReady } = useFabricJSEditor();
   const [nodes, setNodes] = useState([]);
@@ -35,11 +37,6 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
 
   useLayoutEffect(() => {
     setTimeout(async () => {
-      const savedTopology = await api.getTopology();
-      if (savedTopology?.zones) {
-        importFromJSON(savedTopology, editor?.canvas as fabric.Canvas);
-        onFirstNodeAdded();
-      }
 
       const socketHost = process.env.NODE_ENV === 'production' ? window.location.toString() : 'http://localhost:5174';
       const socketUrl = new URL(socketHost.replace("http", "ws"));
@@ -49,6 +46,19 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
       NetworkAnimationController.getInstance(editor?.canvas as fabric.Canvas);
     }, 2500);
   }, [editor]);
+
+  useEffect(() => {
+    setTimeout(async () => {
+      if (topologyID) {
+        const savedTopology = await api.getTopology(topologyID);
+        if (savedTopology?.zones) {
+          importFromJSON(savedTopology, editor?.canvas as fabric.Canvas);
+          onFirstNodeAdded();
+        }
+      }
+    });
+
+  }, [topologyID])
 
   // Update canvas when simulation state changes
   useEffect(() => {

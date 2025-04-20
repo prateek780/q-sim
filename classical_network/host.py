@@ -6,7 +6,7 @@ from classical_network.node import ClassicalNode
 from classical_network.packet import ClassicDataPacket
 from classical_network.router import ClassicalRouter
 from core.base_classes import Node, World, Zone
-from core.enums import NodeType
+from core.enums import NodeType, SimulationEventType
 from core.exceptions import DefaultGatewayNotFound, NotConnectedError
 from core.network import Network
 
@@ -53,7 +53,7 @@ class ClassicalHost(ClassicalNode):
                     self.logger.warn(f"Unexpected packet '{packet}' received from {node_2}")
 
     def recive_packet(self, packet: ClassicDataPacket):
-        self._send_update("packet_received", packet=packet)
+        self._send_update(SimulationEventType.PACKET_RECEIVED, packet=packet)
         if packet.type == PacketType.DATA:
             self.receive_data(packet.data)
 
@@ -90,10 +90,10 @@ class ClassicalHost(ClassicalNode):
             raise NotConnectedError(self, packet.next_hop)
 
         conn.transmit_packet(packet)
-        self._send_update("data_sent", data=data, destination=destination_address)
+        self._send_update(SimulationEventType.DATA_SENT, data=data, destination=destination_address)
 
     def receive_data(self, data):
-        self._send_update("data_received", data=data)
+        self._send_update(SimulationEventType.DATA_RECEIVED, data=data)
 
     def __name__(self):
         return f"Host - '{self.name}'"

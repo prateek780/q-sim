@@ -97,9 +97,9 @@ function createNetworkFromData(networkData: NetworkI, networkCanvas: fabric.Canv
         const connectionManager = ConnectionManager.getInstance(networkCanvas);
         
         networkData.connections.forEach((conn) => {
-            if(!conn?.to) {return}
-            const from = hostInfo.get(conn.from);
-            const to = hostInfo.get(conn.to);
+            if(!conn?.to_node) {return}
+            const from = hostInfo.get(conn.from_node);
+            const to = hostInfo.get(conn.to_node);
 
             if(!(from && to)){
                 console.log('Node not found for connection', conn, from, to);

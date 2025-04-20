@@ -1,8 +1,8 @@
 import os
 from fastapi import FastAPI
 import uvicorn
+from data.models.connection.redis import get_redis_conn
 from server.app import get_app
-from data.redis.data_store import DataStore
 from fastapi.concurrency import asynccontextmanager
 from flask.cli import load_dotenv
 
@@ -14,11 +14,11 @@ app = None
 async def lifespan(app: FastAPI):
     # Startup
     print("Lifespan: Connecting to Redis...")
-    ds = DataStore()
     try:
-        ds.connect_redis() # Make async and await if possible
-        print("Lifespan: Connected to Redis.")
-        app.state.data_store = ds # Optional: store on app state
+        if get_redis_conn().ping():
+            print("Lifespan: Connected to Redis.")
+        else:
+            raise Exception("Failed to connect to Redis")
     except Exception as e:
         print(f"Lifespan ERROR: Failed to connect to Redis: {e}")
         # Decide how to handle connection failure
@@ -26,9 +26,12 @@ async def lifespan(app: FastAPI):
     # Shutdown
     print("Lifespan: Disconnecting from Redis...")
     try:
-        if hasattr(ds, 'disconnect_redis'):
-            ds.disconnect_redis() # Make async and await if possible
+        redis_conn = get_redis_conn()
+        if redis_conn:
+            redis_conn.close()
             print("Lifespan: Disconnected from Redis.")
+        else:
+            print("Lifespan: No Redis connection to close.")
     except Exception as e:
         print(f"Lifespan ERROR: Failed to disconnect from Redis: {e}")
 
@@ -40,7 +43,7 @@ if __name__ == '__main__':
     reload_flag = os.getenv("DEBUG", "True").lower() in ["true", "1", "t"]
     
     uvicorn.run(
-        "start:app", # Point uvicorn to the app instance in this file
+        "start:app",
         host=host,
         port=port,
         reload=reload_flag

@@ -47,8 +47,8 @@ export class SimulatorConnection extends fabric.Line {
         const distanceInKm = (distance / 1000).toFixed(2); // Assuming 1 canvas unit = 1 meter
 
         return {
-            "from": this.metaData.from.name,
-            "to": this.metaData.to?.name,
+            "from_node": this.metaData.from.name,
+            "to_node": this.metaData.to?.name,
             "bandwidth": 1000,
             "latency": 10,
             "length": parseFloat(distanceInKm), // Distance in kilometers

@@ -47,7 +47,7 @@ const api = {
                     const resp = await this.saveTopology(topology);
 
                     if (resp)
-                        previousTopology = resp;
+                        previousTopology = JSON.stringify(topology);
                 }
                 scheduleUpdateCycle();
             }, 2e3);
@@ -55,7 +55,7 @@ const api = {
 
         scheduleUpdateCycle();
     },
-    saveTopology: async(topology:ExportDataI | undefined) => {
+    saveTopology: async(topology:ExportDataI | undefined): Promise<ExportDataI | undefined> => {
         try {
             const body = JSON.stringify(topology);
             // const response = await fetch(SERVER_HOST + `/topology/`, {
@@ -76,8 +76,8 @@ const api = {
             console.error('Failed to update data:', error);
         }
     },
-    getTopology: async () => {
-        const response = await makeFetchCall(SERVER_HOST + `/topology/`)
+    getTopology: async (topologyID: string) => {
+        const response = await makeFetchCall(SERVER_HOST + `/topology/` + topologyID)
 
         try {
             return await response.json() as ExportDataI
@@ -85,15 +85,23 @@ const api = {
             return null
         }
     },
-    startSimulation: async () => {
+    listSavedTopologies: async () => {
+        const response = await makeFetchCall(SERVER_HOST + `/topology/`, 'GET')
+
+        try {
+            return await response.json()
+        } catch (e) {
+            return null
+        }
+    },
+    startSimulation: async (topologyID: string) => {
         const topology = exportToJSON();
         if (!topology) {
             logger.error(`Topology does not exists to start simulator`);
             return false;
         }
 
-
-        const response = await makeFetchCall(SERVER_HOST + `/simulation/`, 'POST')
+        const response = await makeFetchCall(SERVER_HOST + `/simulation/` + topologyID, 'POST')
         if (response.status === 201) {
             return true
         }

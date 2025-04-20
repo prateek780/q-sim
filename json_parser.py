@@ -1,4 +1,5 @@
 import json
+from typing import Dict, Union
 from classical_network.connection import ClassicConnection
 from classical_network.host import ClassicalHost
 from classical_network.router import ClassicalRouter
@@ -11,9 +12,13 @@ from quantum_network.host import QuantumHost
 from quantum_network.repeater import QuantumRepeater  # Import if you use it
 from utils.visualize import visualize_network
 
-def parse_json(json_file, on_update_func=None):
-    with open(json_file, 'r') as f:
-        world_data = json.load(f)
+def parse_json_and_build_network(json_data:Union[str, Dict], on_update_func=None):
+
+    if isinstance(json_data, str):
+        with open(json_data, 'r') as f:
+            world_data = json.load(f)
+    else:
+        world_data = json_data
 
     world = World(size=tuple(world_data['size']), name=world_data['name'], on_update_func=on_update_func)
     # Store created objects for later reference (connections, etc.)
@@ -109,27 +114,27 @@ def parse_json(json_file, on_update_func=None):
             if network.network_type == NetworkType.CLASSICAL_NETWORK:
                 for connection_data in network_data.get('connections', []):
                     connection = ClassicConnection(
-                        node_1=hosts[connection_data['from']],
-                        node_2=hosts[connection_data['to']],
+                        node_1=hosts[connection_data['from_node']],
+                        node_2=hosts[connection_data['to_node']],
                         bandwidth=connection_data['bandwidth'],
                         latency=connection_data['latency'],
                         name=connection_data['name']
                     )
-                    hosts[connection_data['from']].add_connection(connection)
-                    hosts[connection_data['to']].add_connection(connection)
+                    hosts[connection_data['from_node']].add_connection(connection)
+                    hosts[connection_data['to_node']].add_connection(connection)
 
             elif network.network_type == NetworkType.QUANTUM_NETWORK:
                 for connection_data in network_data.get('connections', []):
                     connection = QuantumChannel(
-                        node_1=hosts[connection_data['from']],
-                        node_2=hosts[connection_data['to']],
+                        node_1=hosts[connection_data['from_node']],
+                        node_2=hosts[connection_data['to_node']],
                         length=connection_data['length'],
                         loss_per_km=connection_data['loss_per_km'],
                         noise_model=connection_data['noise_model'],
                         name=connection_data['name']
                     )
-                    hosts[connection_data['from']].add_quantum_channel(connection)
-                    hosts[connection_data['to']].add_quantum_channel(connection)
+                    hosts[connection_data['from_node']].add_quantum_channel(connection)
+                    hosts[connection_data['to_node']].add_quantum_channel(connection)
 
     # Third Pass: Create adapters and set references
     for zone_data in world_data['zones']:
@@ -198,41 +203,11 @@ def parse_json(json_file, on_update_func=None):
 
     return world
 
-def simulate_from_json(json_file, on_update_func=None):
+def simulate_from_json(json_file: Union[str, Dict], on_update_func=None):
     with open('log.txt', 'w') as f:
         f.write("Start")
-    world = parse_json(json_file, on_update_func)
-    visualize_network(world, "out_parsed.png")  # Visualize the parsed network
-    #Find Alice and Dave to send message.
-    alice = None
-    dave = None
-    # for zone in world.zones:
-    #     for network in zone.networks:
-    #          for host in network.nodes:
-    #             if host.name == "Alice":
-    #                 alice = host
-    #             if host.name == "Dave":
-    #                 dave = host
-
-    # alice = None
-    # dave = None
-    # for zone in world.zones:
-    #     for network in zone.networks:
-    #         if network.network_type == NetworkType.QUANTUM_NETWORK:
-    #             continue
-
-    #         for host in network.nodes:
-    #             if isinstance(host, ClassicalHost):
-    #                 if alice is None:
-    #                     alice = host
-    #                     break
-
-    #                 dave = host
-    # print(alice)
-    # print(dave)
-    # if alice != None and dave != None:
-    #     print("Sending message from Alice to Dave")
-    #     alice.send_data("HELLO WORLD", dave)
+    world = parse_json_and_build_network(json_file, on_update_func)
+    visualize_network(world, "out_parsed.png")
     world.start_sequential()
     return world
 

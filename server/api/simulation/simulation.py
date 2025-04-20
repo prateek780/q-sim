@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Response, status, Body
 from typing import Dict, Any # For type hints
 
 # Assuming SimulationManager is defined elsewhere and has appropriate methods
+from data.models.topology.world_model import get_topology_from_redis
 from server.api.simulation.manager import SimulationManager # Keep this import
 
 # Replace Blueprint with APIRouter
@@ -124,7 +125,7 @@ async def stop_simulation():
 
 # Handle both GET and POST for starting the simulation
 @simulation_router.api_route(
-    "/",
+    "/{topology_id}",
     methods=["GET", "POST"], # Specify allowed methods
     status_code=status.HTTP_201_CREATED, # Success status code
     summary="Start the simulation using the network file",
@@ -134,7 +135,7 @@ async def stop_simulation():
         status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Simulation Manager not initialized"}
     }
 )
-async def execute_simulation():
+async def execute_simulation(topology_id:str):
     """
     Starts the simulation using the predefined 'network.json' file.
     Returns 201 Created on success.
@@ -144,12 +145,17 @@ async def execute_simulation():
     """
     if manager is None:
          raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Simulation Manager not initialized")
+    
+    world = get_topology_from_redis(topology_id)
 
-    network_file = "network.json" # Keep this defined or pass as config
+    if not world:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Topology with ID '{topology_id}' not found."
+        )
 
     try:
-        # Consider if start_simulation should be async (await manager.start_simulation(...))
-        simulation_started = manager.start_simulation(network_file) # Assuming sync for now
+        simulation_started = manager.start_simulation(world)
 
         if not simulation_started:
             # Use HTTPException for conflict

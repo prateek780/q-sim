@@ -4,7 +4,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, ZoomIn, ZoomOut, RotateCcw, Beaker, Check, Bot } from "lucide-react"
@@ -14,6 +18,8 @@ import { useState } from "react"
 import { LabPanel } from "../labs/lab-panel"
 import { Badge } from "../ui/badge"
 import { EXERCISES } from "../labs/exercise "
+import { set } from "lodash"
+import { ExportDataI } from "@/services/export.interface"
 
 interface TopBarProps {
   onStartLab?: (labId: string) => void
@@ -21,6 +27,7 @@ interface TopBarProps {
   simulationState: any
   updateLabProgress: (completed: number, total: number) => void
   onOpenAIPanel?: () => void
+  updateActiveTopologyID: (topologyID: string) => void
 }
 
 export function TopBar({
@@ -29,9 +36,19 @@ export function TopBar({
   simulationState,
   updateLabProgress,
   onOpenAIPanel = () => { },
+  updateActiveTopologyID
 }: TopBarProps
 ) {
   const [isLabPanelOpen, setIsLabPanelOpen] = useState(false)
+  const [savedTopologies, setSavedTopologies] = useState([])
+
+
+  const fetchSavedTopologies = async () => {
+    const response = await api.listSavedTopologies();
+    if (response) {
+      setSavedTopologies(response);
+    }
+  }
 
   const exportJSONFile = () => {
     const jsonData = exportToJSON();
@@ -41,11 +58,17 @@ export function TopBar({
     downloadJson(jsonData, "network")
   }
 
-  const saveCurrentNetwork = () => {
+  const saveCurrentNetwork = async () => {
     const jsonData = exportToJSON();
 
     if (!jsonData) return;
-    api.saveTopology(jsonData);
+    const response = await api.saveTopology(jsonData);
+
+    if (response?.pk) {
+      updateActiveTopologyID(response.pk);
+    } else {
+      console.error("Failed to save topology");
+    }
   }
 
   return (
@@ -58,7 +81,7 @@ export function TopBar({
           </h1>
 
           <div className="flex items-center">
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={fetchSavedTopologies}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 gap-1">
                   File <ChevronDown className="h-4 w-4" />
@@ -66,12 +89,32 @@ export function TopBar({
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>New Project</DropdownMenuItem>
-                <DropdownMenuItem>Open Project</DropdownMenuItem>
+                {/* <DropdownMenuItem>Open Project</DropdownMenuItem> */}
                 <DropdownMenuItem onClick={saveCurrentNetwork}>Save</DropdownMenuItem>
                 {/* <DropdownMenuItem>Save As...</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={exportJSONFile}>Export...</DropdownMenuItem>
                 <DropdownMenuItem>Import...</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Load Saved Topology</DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {
+                        savedTopologies.map((topology: ExportDataI) => (
+                          <DropdownMenuItem
+                            key={topology.pk}
+                            onClick={() => {
+                              window.location.href = `/?topologyID=${topology.pk}`;
+                            }}
+                          >
+                            {topology.name}
+                          </DropdownMenuItem>
+                        ))
+                      }
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
               </DropdownMenuContent>
             </DropdownMenu>
 

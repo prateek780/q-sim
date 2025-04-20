@@ -6,14 +6,10 @@ import { NetworkCanvas } from "./components/canvas/network-canvas"
 import { Sidebar } from "./components/toolbar/sidebar"
 import { TopBar } from "./components/toolbar/top-bar"
 import { SimulationControls } from "./components/toolbar/simulation-controls"
-import { QuantumStateViewer } from "./components/metrics/quantum-state-viewer"
-import { MetricsPanel } from "./components/metrics/metrics-panel"
 import { NodeDetailPanel } from "./components/node/node-detail-panel"
-import { SimulationTimeline } from "./components/toolbar/simulation-timeline"
 import { JSONFormatViewer } from "./components/metrics/json-viewer"
 import api from "./services/api"
 import { SimulationLogsPanel } from "./components/metrics/simulation-logs"
-// import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner"
 import { ActiveLabIndicator } from "./components/labs/active-lab-indicator"
@@ -21,6 +17,7 @@ import { ExerciseI } from "./components/labs/exercise /exercise"
 import { EXERCISES } from "./components/labs/exercise "
 import { ConnectionManager } from "./components/node/connections/connectionManager"
 import { AIAgentsModal } from "./components/ai-agents/ai-agents-modal"
+import { networkStorage } from "./services/storage"
 
 export default function QuantumNetworkSimulator() {
   const [selectedNode, setSelectedNode] = useState(null)
@@ -30,6 +27,7 @@ export default function QuantumNetworkSimulator() {
   const [simulationState, setSimulationState] = useState(0)
   const [activeLabObject, setActiveLabObject] = useState<ExerciseI | null>(null)
   const [activeMessages, setActiveMessages] = useState<{ id: string; source: string; target: string; content: any; protocol: string; startTime: number; duration: number }[]>([])
+  const [activeTopologyID, setActiveTopologyID] = useState<string | null>(null)
 
   // Lab-related state
   const [activeLab, setActiveLab] = useState<string | null>(null)
@@ -41,6 +39,17 @@ export default function QuantumNetworkSimulator() {
 
   // Reference to the NetworkCanvas component
   const networkCanvasRef = useRef(null)
+
+  useEffect(() => {
+    setTimeout(async () => {
+      const queryParams = new URLSearchParams(window.location.search);
+      const lastOpenedTopologyID = queryParams.get("topologyID") || await networkStorage.getLastOpenedTopologyID();
+
+      if (lastOpenedTopologyID) {
+        setActiveTopologyID(lastOpenedTopologyID);
+      }
+    })
+  })
 
   useEffect(() => {
     setTimeout(() => {
@@ -155,7 +164,11 @@ export default function QuantumNetworkSimulator() {
       if (!api.stopSimulation())
         return
     } else {
-      if (!api.startSimulation())
+      if (!activeTopologyID) {
+        toast.error("Please save your topology before starting the simulation.");
+        return;
+      }
+      if (!api.startSimulation(activeTopologyID))
         return;
     }
     setIsSimulationRunning(!isSimulationRunning);
@@ -213,6 +226,7 @@ export default function QuantumNetworkSimulator() {
           completedLabs={completedLabs}
           updateLabProgress={handleLabProgressUpdate}
           onOpenAIPanel={() => setIsAIPanelOpen(true)}
+          updateActiveTopologyID={setActiveTopologyID}
         />
 
         {/* Main Workspace */}
@@ -222,14 +236,12 @@ export default function QuantumNetworkSimulator() {
             <NetworkCanvas
               ref={networkCanvasRef}
               onNodeSelect={(node) => {
-                // Find the node in availableNodes
-                // const foundNode = availableNodes.find((n) => n.name === node.name)
                 setSelectedNode(node)
               }}
               isSimulationRunning={isSimulationRunning}
               simulationTime={currentTime}
               activeMessages={activeMessages}
-
+              topologyID={activeTopologyID}
             />
 
             {/* Active Lab Indicator */}

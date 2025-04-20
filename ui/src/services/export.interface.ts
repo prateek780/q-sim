@@ -1,5 +1,6 @@
 export interface ExportDataI {
     name: string
+    pk?: string
     size: number[]
     zones: ZoneI[]
 }
@@ -29,8 +30,8 @@ export interface NetworkI extends NodeI  {
 export interface HostI extends NodeI {};
 
 export interface ConnectionI {
-    from: string
-    to?: string
+    from_node: string
+    to_node?: string
     bandwidth: number
     latency: number
     length: number

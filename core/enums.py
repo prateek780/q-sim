@@ -22,3 +22,12 @@ class NodeType(enum.Enum):
 class NetworkType(enum.Enum):
     QUANTUM_NETWORK = "quantum_network"
     CLASSICAL_NETWORK = "classical_network"
+
+class SimulationEventType(enum.Enum):
+    PACKET_TRANSMITTED = "packet_transmitted"
+    PACKET_RECEIVED = "packet_received"
+    DATA_SENT = "data_sent"
+    DATA_RECEIVED = "data_received"
+    PACKET_ROUTED = "packet_routed"
+    QKD_INITIALIZED = "qkd_initiated"
+    CLASSICAL_DATA_RECEIVED = "classical_data_received"

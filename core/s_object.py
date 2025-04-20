@@ -1,6 +1,7 @@
 
 import uuid
 import logging
+from core.enums import SimulationEventType
 from core.event import Event
 
 class Sobject:
@@ -37,9 +38,8 @@ class Sobject:
 
         return logger
 
-    def _send_update(self, event_type, **kwargs):
+    def _send_update(self, event_type: SimulationEventType, **kwargs):
         event = Event(event_type, self, **kwargs)
-        # print("ON UPDATE", self, event.to_dict(), self.on_update_func)
         self.on_update(event)
 
     def on_update(self, event: Event):
