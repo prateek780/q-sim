@@ -19,17 +19,7 @@ class LogLevel(str, Enum):
     CRITICAL = "critical"
 
 
-# class EntityType(str, Enum):
-#     """Types of entities that can be associated with a log entry"""
-#     HOST = "host"
-#     NETWORK = "network"
-#     ADAPTER = "adapter"
-#     ZONE = "zone"
-#     CONNECTION = "connection"
-#     SIMULATION = "simulation"
-
-
-class LogEntry(JsonModel):
+class LogEntryModel(JsonModel):
     """Model representing a log entry in a simulation"""
 
     simulation_id: str = RedisField(index=True)
@@ -46,7 +36,7 @@ class LogEntry(JsonModel):
         database = get_redis_conn()
 
 
-def add_log_entry(log_data: Dict[str, Any]) -> str:
+def add_log_entry(log_data: Dict[str, Any]) -> LogEntryModel:
     """Add a log entry to Redis"""
     # Ensure we have a connection
     get_redis_conn()
@@ -55,21 +45,21 @@ def add_log_entry(log_data: Dict[str, Any]) -> str:
     Migrator().run()
 
     # Create LogEntry instance
-    log_entry = LogEntry(**log_data)
+    log_entry = LogEntryModel(**log_data)
 
     # Save to Redis
     log_entry.save()
 
-    return log_entry.pk
+    return log_entry
 
 
-def get_log_entry(primary_key: str) -> Optional[LogEntry]:
+def get_log_entry(primary_key: str) -> Optional[LogEntryModel]:
     """Retrieve log entry from Redis by primary key"""
     # Ensure we have a connection
     get_redis_conn()
 
     try:
-        return LogEntry.get(primary_key)
+        return LogEntryModel.get(primary_key)
     except Exception as e:
         print(f"Error retrieving log entry: {e}")
         return None
@@ -80,16 +70,16 @@ def get_logs_by_simulation(
     level: Optional[LogLevel] = None,
     limit: int = 100,
     offset: int = 0,
-) -> List[LogEntry]:
+) -> List[LogEntryModel]:
     """Get logs for a specific simulation with optional filtering"""
     # Ensure we have a connection
     get_redis_conn()
 
-    query = LogEntry.find(LogEntry.simulation_id == simulation_id)
+    query = LogEntryModel.find(LogEntryModel.simulation_id == simulation_id)
 
     # Add level filter if provided
     if level:
-        query = query.find(LogEntry.level == level)
+        query = query.find(LogEntryModel.level == level)
 
     # Sort by timestamp descending (newest first)
     query = query.sort_by("-timestamp")
@@ -102,15 +92,15 @@ def get_logs_by_simulation(
 
 def get_entity_logs(
     simulation_id: str, entity_type: NodeType, entity_id: str
-) -> List[LogEntry]:
+) -> List[LogEntryModel]:
     """Get logs related to a specific entity in a simulation"""
     # Ensure we have a connection
     get_redis_conn()
 
     return (
-        LogEntry.find(LogEntry.simulation_id == simulation_id)
-        .find(LogEntry.entity_type == entity_type)
-        .find(LogEntry.entity_id == entity_id)
+        LogEntryModel.find(LogEntryModel.simulation_id == simulation_id)
+        .find(LogEntryModel.entity_type == entity_type)
+        .find(LogEntryModel.entity_id == entity_id)
         .sort_by("-timestamp")
         .all()
     )
@@ -123,7 +113,7 @@ def clear_simulation_logs(simulation_id: str) -> bool:
 
     try:
         # Find all logs for the simulation
-        logs = LogEntry.find(LogEntry.simulation_id == simulation_id).all()
+        logs = LogEntryModel.find(LogEntryModel.simulation_id == simulation_id).all()
 
         # Delete each log
         for log in logs:

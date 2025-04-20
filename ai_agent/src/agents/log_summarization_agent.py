@@ -1,8 +1,9 @@
 from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import datetime
 import re
-import asyncio
+
+from data.embedding.vector_log import VectorLogEntry
 from .base_agent import BaseAgent, AgentTask
 
 
@@ -47,6 +48,9 @@ class LogSummarizationAgent(BaseAgent):
         )
         self.llm = llm
         print("LogSummarizationAgent initialized with LLM:", llm)
+        self.tools = {
+            "get_relevant_logs": self._get_relevant_logs
+        }
 
     def _register_tasks(self) -> Dict[str, AgentTask]:
         """Register all tasks this agent can perform."""
@@ -90,6 +94,68 @@ class LogSummarizationAgent(BaseAgent):
                 examples=[],
             ),
         }
+    
+    async def get_formatted_logs_by_simulation(self, simulation_id, max_entries=100):
+        """Get formatted logs from vector storage"""
+        log_entries = VectorLogEntry.get_by_simulation(simulation_id, limit=max_entries)
+        
+        # Format for agent processing
+        formatted_logs = []
+        for log in log_entries:
+            # Format timestamp
+            timestamp = log.get("timestamp")
+            if isinstance(timestamp, datetime):
+                timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                
+            # Format level and component
+            level = log.get("level", "INFO")
+            component = log.get("component", "unknown")
+            
+            # Format details as message
+            details = log.get("details", {})
+            if isinstance(details, dict):
+                message = " ".join(f"{k}={v}" for k, v in details.items())
+            else:
+                message = str(details)
+                
+            # Format in expected log format
+            formatted_logs.append(f"{timestamp} {level} {component} {message}")
+            
+        return formatted_logs
+    
+    async def _get_relevant_logs(self, simulation_id, query, limit=20):
+        """Retrieve logs relevant to a question using vector similarity"""
+        # Generate embedding for query
+        query_embedding = self.embedding_util.generate_embedding(query)
+        
+        # Search for relevant logs
+        return VectorLogEntry.search_similar(
+            query_embedding,
+            top_k=limit,
+            filters={"simulation_id": simulation_id}
+        )
+
+    async def answer_question(self, simulation_id, question):
+        # Use the tool to retrieve relevant logs
+        relevant_logs = await self.tools["get_relevant_logs"](
+            simulation_id=simulation_id,
+            query=question,
+            limit=10
+        )
+        
+        # Format logs and generate response as before
+        formatted_logs = [self._format_log_for_llm(log) for log in relevant_logs]
+        logs_text = "\n".join(formatted_logs)
+        
+        prompt = f"""
+        Answer based on these logs:
+        {logs_text}
+        
+        QUESTION: {question}
+        """
+        
+        response = await self.llm.agenerate([prompt])
+        return response.generations[0][0].text.strip()
 
     async def process_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Process a direct message to this agent."""

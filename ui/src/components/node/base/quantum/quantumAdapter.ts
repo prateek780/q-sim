@@ -31,10 +31,8 @@ export class QuantumAdapter extends SimulatorNode {
 
     assignAdapterNode(node: SimulatorNode) {
         if (getNodeFamily(node.nodeType) === NodeFamily.CLASSICAL) {
-            console.log('Assig c', node.name);
             this.assignClassicalHost(node as ClassicalHost);
         } else {
-            console.log('Assig q', node.name);
             this.assignQuantumHost(node as QuantumHost);
         }
     }

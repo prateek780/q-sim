@@ -10,6 +10,7 @@ from data.models.topology.world_model import (
     get_all_topologies_from_redis,
     get_topology_from_redis,
     save_world_to_redis,
+    update_world_in_redis,
 )  # For type hinting the request body
 
 # Replace Blueprint with APIRouter
@@ -24,7 +25,7 @@ NETWORK_FILE = "network.json"  # Keep the constant
 @topology_router.put("/{topology_id}", status_code=status.HTTP_201_CREATED)
 @topology_router.put("/", status_code=status.HTTP_201_CREATED)
 async def update_topology(
-    topology_data: WorldModal = Body(), topology_id: Optional[str] = "default"
+    topology_data: WorldModal = Body(), topology_id: Optional[str] = None
 ):
     """
     Receives topology data (expected as JSON in the request body),
@@ -37,7 +38,10 @@ async def update_topology(
     """
 
     try:
-        id = save_world_to_redis(topology_data)
+        if topology_id:
+            topology_data = update_world_in_redis(topology_id, topology_data.model_dump())
+        else:
+            topology_data = save_world_to_redis(topology_data)
 
         return topology_data
 
@@ -80,7 +84,8 @@ async def get_topology(topology_id: str):
             },
         )
     except Exception as e:
-        print(f"Error reading topology file: {e}")  # Log the error server-side
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not read topology data due to a server error.",

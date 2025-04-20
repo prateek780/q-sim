@@ -226,6 +226,7 @@ export default function QuantumNetworkSimulator() {
           completedLabs={completedLabs}
           updateLabProgress={handleLabProgressUpdate}
           onOpenAIPanel={() => setIsAIPanelOpen(true)}
+          activeTopologyID={activeTopologyID}
           updateActiveTopologyID={setActiveTopologyID}
         />
 

@@ -18,6 +18,7 @@ import { WebSocketClient } from "@/services/socket";
 import { importFromJSON } from "@/services/importService";
 import { NetworkAnimationController } from "./animation";
 import { networkStorage } from "@/services/storage";
+import { toast } from "sonner";
 
 
 interface NetworkCanvasProps {
@@ -50,10 +51,16 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
   useEffect(() => {
     setTimeout(async () => {
       if (topologyID) {
-        const savedTopology = await api.getTopology(topologyID);
-        if (savedTopology?.zones) {
-          importFromJSON(savedTopology, editor?.canvas as fabric.Canvas);
-          onFirstNodeAdded();
+        try {
+          const savedTopology = await api.getTopology(topologyID);
+          if (savedTopology?.zones) {
+            importFromJSON(savedTopology, editor?.canvas as fabric.Canvas);
+            onFirstNodeAdded();
+          }
+        } catch(e) {
+          toast('Topology not found!', {onAutoClose: (t) => {
+            window.location.href = "/";
+          }})
         }
       }
     });

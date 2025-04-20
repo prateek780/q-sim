@@ -65,7 +65,12 @@ const api = {
             //     },
             //     body,
             // });
-            const response = await makeFetchCall(SERVER_HOST + `/topology/`, 'PUT', body)
+            let path =  `/topology/`;
+
+            if(topology?.pk) {
+                path += topology.pk
+            }
+            const response = await makeFetchCall(SERVER_HOST + path, 'PUT', body)
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -78,7 +83,9 @@ const api = {
     },
     getTopology: async (topologyID: string) => {
         const response = await makeFetchCall(SERVER_HOST + `/topology/` + topologyID)
-
+        if(response.status != 200) {
+            throw new Error('Error in fetching topology')
+        }
         try {
             return await response.json() as ExportDataI
         } catch (e) {

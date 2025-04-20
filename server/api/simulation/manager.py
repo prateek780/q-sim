@@ -7,6 +7,7 @@ import traceback
 
 from core.base_classes import World
 from core.event import Event
+from data.embedding.embedding_util import EmbeddingUtil
 from data.models.simulation.log_model import add_log_entry
 from data.models.simulation.simulation_model import (
     SimulationModal,
@@ -39,6 +40,7 @@ class SimulationManager:
         self.current_simulation = None
         self.simulation_data: SimulationModal = None
         self.main_event_loop = None
+        self.embedding_util = EmbeddingUtil(embedding_provider="openai")
 
     @classmethod
     def get_instance(cls) -> "SimulationManager":
@@ -106,7 +108,7 @@ class SimulationManager:
 
     def on_update(self, event: Event) -> None:
         self.emit_event("simulation_event", event)
-        add_log_entry(
+        log_entry = add_log_entry(
             {
                 "simulation_id": self.simulation_data.pk,
                 "timestamp": datetime.now(),
@@ -116,6 +118,7 @@ class SimulationManager:
                 "details": event.to_dict(),
             }
         )
+        self.embedding_util.embed_and_store_log(log_entry)
 
     def _run_simulation(self, topology_data: WorldModal) -> None:
         """

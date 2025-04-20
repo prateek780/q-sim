@@ -16,7 +16,7 @@ export function importFromJSON(jsonData: ExportDataI | string, networkCanvas: fa
         // Parse JSON if string is provided
         const data: ExportDataI = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
         const networkManager = NetworkManager.getInstance(networkCanvas);
-        const connectionManager= ConnectionManager.getInstance(networkCanvas);
+        const connectionManager = ConnectionManager.getInstance(networkCanvas);
 
         if (!networkManager) {
             logger.error("NetworkManager instance not found.");
@@ -31,34 +31,34 @@ export function importFromJSON(jsonData: ExportDataI | string, networkCanvas: fa
         // Process zones
         if (data.zones && Array.isArray(data.zones)) {
             data.zones.forEach(zone => {
-                    
+
                 // Import networks within the zone
                 if (zone.networks && Array.isArray(zone.networks)) {
                     zone.networks.forEach(networkData => {
                         const zoneHostInfo = createNetworkFromData(networkData, networkCanvas);
-                        if(zoneHostInfo) {
+                        if (zoneHostInfo) {
                             hostInfo = new Map([...hostInfo, ...zoneHostInfo]);
                         }
                     });
                 }
 
-                // Import adapters within the zone
-                if (zone.adapters && Array.isArray(zone.adapters)) {
-                    zone.adapters.forEach(adapterData => {
-                        const adapter = createAdapterFromData(adapterData, networkCanvas);
-                        if (adapter) {
-                            // Connect adapter to appropriate network/host
-                            // connectAdapter(adapter, adapterData, networkManager);
-                            // networkManager.canvas.add(adapter);
-                            const cHost = hostInfo.get(adapterData.classicalHost) as ClassicalHost;
-                            const qHost = hostInfo.get(adapterData.quantumHost) as QuantumHost;
-                            
-                            connectionManager.updateConnection(cHost, {x: adapter.getX(), y: adapter.getY()}, true);
-                            
-                            connectionManager.updateConnection(qHost, {x: adapter.getX(), y: adapter.getY()}, true);
-                        }
-                    });
-                }
+                // TODO: debug why it doesn't work without setTimeout
+                setTimeout(() => {
+                    // Import adapters within the zone
+                    if (zone.adapters && Array.isArray(zone.adapters)) {
+                        zone.adapters.forEach(adapterData => {
+                            const adapter = createAdapterFromData(adapterData, networkCanvas);
+                            if (adapter) {
+                                const cHost = hostInfo.get(adapterData.classicalHost) as ClassicalHost;
+                                const qHost = hostInfo.get(adapterData.quantumHost) as QuantumHost;
+
+                                connectionManager.updateConnection(cHost, { x: adapter.getX(), y: adapter.getY() }, true);
+
+                                connectionManager.updateConnection(qHost, { x: adapter.getX(), y: adapter.getY() }, true);
+                            }
+                        });
+                    }
+                }, 1000)
             });
         }
         //  else if (data.networks && Array.isArray(data.networks)) {
@@ -95,18 +95,18 @@ function createNetworkFromData(networkData: NetworkI, networkCanvas: fabric.Canv
             }
         })
         const connectionManager = ConnectionManager.getInstance(networkCanvas);
-        
+
         networkData.connections.forEach((conn) => {
-            if(!conn?.to_node) {return}
+            if (!conn?.to_node) { return }
             const from = hostInfo.get(conn.from_node);
             const to = hostInfo.get(conn.to_node);
 
-            if(!(from && to)){
+            if (!(from && to)) {
                 console.log('Node not found for connection', conn, from, to);
                 return
             }
 
-            connectionManager.updateConnection(from, {x: to.getX(), y: to.getY()});
+            connectionManager.updateConnection(from, { x: to.getX(), y: to.getY() });
         })
         networkCanvas.requestRenderAll();
         return hostInfo;
@@ -147,12 +147,12 @@ function createNetworkFromData(networkData: NetworkI, networkCanvas: fabric.Canv
 //     }
 // }
 
-function createAdapterFromData(adapterData: AdapterI, canvas:fabric.Canvas) {
+function createAdapterFromData(adapterData: AdapterI, canvas: fabric.Canvas) {
     try {
         const adapter = QuantumAdapter.importFromJSON(adapterData, canvas);
         if (adapter) {
             canvas.add(adapter);
-            
+
             return adapter as QuantumAdapter;
         }
     } catch (error) {

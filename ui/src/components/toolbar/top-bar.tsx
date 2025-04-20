@@ -27,6 +27,7 @@ interface TopBarProps {
   simulationState: any
   updateLabProgress: (completed: number, total: number) => void
   onOpenAIPanel?: () => void
+  activeTopologyID: string | null
   updateActiveTopologyID: (topologyID: string) => void
 }
 
@@ -36,6 +37,7 @@ export function TopBar({
   simulationState,
   updateLabProgress,
   onOpenAIPanel = () => { },
+  activeTopologyID,
   updateActiveTopologyID
 }: TopBarProps
 ) {
@@ -62,6 +64,10 @@ export function TopBar({
     const jsonData = exportToJSON();
 
     if (!jsonData) return;
+
+    if (activeTopologyID)
+      jsonData.pk = activeTopologyID;
+
     const response = await api.saveTopology(jsonData);
 
     if (response?.pk) {

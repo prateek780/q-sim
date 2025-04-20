@@ -16,7 +16,7 @@ class WorldModal(JsonModel):
         model_key_prefix = "world"
         database = get_redis_conn()
 
-def save_world_to_redis(world: Union[Dict[str, Any], WorldModal]) -> str:
+def save_world_to_redis(world: Union[Dict[str, Any], WorldModal]) -> WorldModal:
     """Save world data to Redis"""
     # Ensure we have a connection
     get_redis_conn()
@@ -31,8 +31,34 @@ def save_world_to_redis(world: Union[Dict[str, Any], WorldModal]) -> str:
     # Save to Redis
     world.save()
     
-    return world.pk
+    return world
 
+def update_world_in_redis(
+    primary_key: str,
+    update_data: Dict[str, Any]
+) -> Optional[WorldModal]:
+    get_redis_conn()
+
+    try:
+        world_to_update = WorldModal.get(primary_key)
+
+        for field, value in update_data.items():
+            if hasattr(world_to_update, field):
+                 setattr(world_to_update, field, value)
+            else:
+                 print(f"Warning: Field '{field}' not found in WorldModal model. Skipping update for this field.")
+        world_to_update.save()
+        print(f"Successfully updated WorldModal with PK: {primary_key}")
+
+        # 4. Return the updated object
+        return world_to_update
+    except Exception as e:
+        print(f"Error updating WorldModal with PK '{primary_key}': {e}")
+        # Log the full traceback for detailed debugging
+        import traceback
+        traceback.print_exc()
+        return None
+    
 def get_topology_from_redis(primary_key: str) -> Optional[WorldModal]:
     """Retrieve world data from Redis by primary key"""
     # Ensure we have a connection

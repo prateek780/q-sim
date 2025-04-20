@@ -3,12 +3,17 @@
 # Variables
 PYTHON = python3
 TEST_DIR = ai_agent/tests
-SRC_DIR = src
+UI_SRC=ui
 PYTEST = pytest
 PYTEST_ARGS = -xvs
 
-# Default target
-all: test
+all: api
+
+api:
+	$(PYTHON) start.py
+
+fe:
+	cd ${UI_SRC} && npm run dev
 
 # Run all tests
 test:
