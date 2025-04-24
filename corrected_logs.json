@@ -1,0 +1,844 @@
+{
+  "logs": [
+    {
+      "log_id": "LOG_0000",
+      "component": "StartClassicalHost-1",
+      "time": "16:11:32",
+      "event": "StartClassicalHost-1 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0001",
+      "component": "ClassicalRouter-3",
+      "time": "16:11:33",
+      "event": "ClassicalRouter-3 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0002",
+      "component": "Internet Exchange",
+      "time": "16:11:34",
+      "event": "Internet Exchange created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0003",
+      "component": "QuantumHost-6",
+      "time": "16:11:35",
+      "event": "QuantumHost-6 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0004",
+      "component": "QuantumHost-5",
+      "time": "16:11:36",
+      "event": "QuantumHost-5 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0005",
+      "component": "ClassicalHost-2",
+      "time": "16:11:37",
+      "event": "ClassicalHost-2 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0006",
+      "component": "ClassicalRouter-7",
+      "time": "16:11:38",
+      "event": "ClassicalRouter-7 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0007",
+      "component": "QuantumAdapter-4",
+      "time": "16:11:39",
+      "event": "QuantumAdapter-4 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0008",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:11:40",
+      "event": "QC_Router_QuantumAdapter-4 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0009",
+      "component": "QuantumAdapter-8",
+      "time": "16:11:41",
+      "event": "QuantumAdapter-8 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0010",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:11:42",
+      "event": "QC_Router_QuantumAdapter-8 created",
+      "event_type": "creation"
+    },
+    {
+      "log_id": "LOG_0011",
+      "component": "ClassicalHost-2",
+      "time": "16:11:43",
+      "event": "ClassicalHost-2 sent data 'hi prateek nice to meet you ' to ClassicalHost-1 (next hop: ClassicalRouter-7)",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0012",
+      "component": "ClassicalHost-2",
+      "time": "16:11:44",
+      "event": "ClassicalHost-2 received event {'data': 'hi prateek nice to meet you ', 'destination': Host - 'ClassicalHost-1'}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0013",
+      "component": "ClassicalRouter-7",
+      "time": "16:11:45",
+      "event": "ClassicalRouter-7 received packet from ClassicalHost-2 to QC_Router_QuantumAdapter-8 with data 'hi prateek nice to meet you '",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0014",
+      "component": "ClassicalRouter-7",
+      "time": "16:11:46",
+      "event": "ClassicalRouter-7 routing packet directly to QC_Router_QuantumAdapter-8",
+      "event_type": "routing"
+    },
+    {
+      "log_id": "LOG_0015",
+      "component": "ClassicalRouter-7",
+      "time": "16:11:47",
+      "event": "ClassicalRouter-7 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19D41D30>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0016",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:11:48",
+      "event": "QC_Router_QuantumAdapter-8 received packet from ClassicalHost-2 to QC_Router_QuantumAdapter-8 with data 'hi prateek nice to meet you '",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0017",
+      "component": "QuantumAdapter-8",
+      "time": "16:11:49",
+      "event": "QuantumAdapter-8 received packet from ClassicalHost-2",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0018",
+      "component": "QuantumAdapter-8",
+      "time": "16:11:50",
+      "event": "QuantumAdapter-8 initiating QKD with QuantumAdapter-4 before processing packet",
+      "event_type": "initiate"
+    },
+    {
+      "log_id": "LOG_0019",
+      "component": "QuantumHost-6",
+      "time": "16:11:51",
+      "event": "QuantumHost-6 initiating quantum key distribution",
+      "event_type": "initiate"
+    },
+    {
+      "log_id": "LOG_0020",
+      "component": "QuantumHost-6",
+      "time": "16:11:52",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0021",
+      "component": "QuantumHost-6",
+      "time": "16:11:53",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0022",
+      "component": "QuantumHost-6",
+      "time": "16:11:54",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0023",
+      "component": "QuantumHost-6",
+      "time": "16:11:55",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0024",
+      "component": "QuantumHost-6",
+      "time": "16:11:56",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0025",
+      "component": "QuantumHost-6",
+      "time": "16:11:57",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0026",
+      "component": "QuantumHost-6",
+      "time": "16:11:58",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0027",
+      "component": "QuantumHost-6",
+      "time": "16:11:59",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0028",
+      "component": "QuantumHost-6",
+      "time": "16:12:00",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0029",
+      "component": "QuantumHost-6",
+      "time": "16:12:01",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0030",
+      "component": "QuantumHost-6",
+      "time": "16:12:02",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0031",
+      "component": "QuantumHost-6",
+      "time": "16:12:03",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0032",
+      "component": "QuantumHost-6",
+      "time": "16:12:04",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0033",
+      "component": "QuantumHost-6",
+      "time": "16:12:05",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0034",
+      "component": "QuantumHost-6",
+      "time": "16:12:06",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0035",
+      "component": "QuantumHost-6",
+      "time": "16:12:07",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0036",
+      "component": "QuantumHost-6",
+      "time": "16:12:08",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0037",
+      "component": "QuantumHost-6",
+      "time": "16:12:09",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0038",
+      "component": "QuantumHost-6",
+      "time": "16:12:10",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0039",
+      "component": "QuantumHost-6",
+      "time": "16:12:11",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0040",
+      "component": "QuantumHost-6",
+      "time": "16:12:12",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0041",
+      "component": "QuantumHost-6",
+      "time": "16:12:13",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0042",
+      "component": "QuantumHost-6",
+      "time": "16:12:14",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0043",
+      "component": "QuantumHost-6",
+      "time": "16:12:15",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0044",
+      "component": "QuantumHost-6",
+      "time": "16:12:16",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0045",
+      "component": "QuantumHost-6",
+      "time": "16:12:17",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0046",
+      "component": "QuantumHost-6",
+      "time": "16:12:18",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0047",
+      "component": "QuantumHost-6",
+      "time": "16:12:19",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0048",
+      "component": "QuantumHost-6",
+      "time": "16:12:20",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0049",
+      "component": "QuantumHost-6",
+      "time": "16:12:21",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0050",
+      "component": "QuantumHost-6",
+      "time": "16:12:22",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0051",
+      "component": "QuantumHost-6",
+      "time": "16:12:23",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0052",
+      "component": "QuantumHost-6",
+      "time": "16:12:24",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0053",
+      "component": "QuantumHost-6",
+      "time": "16:12:25",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0054",
+      "component": "QuantumHost-6",
+      "time": "16:12:26",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0055",
+      "component": "QuantumHost-6",
+      "time": "16:12:27",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0056",
+      "component": "QuantumHost-6",
+      "time": "16:12:28",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0057",
+      "component": "QuantumHost-6",
+      "time": "16:12:29",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0058",
+      "component": "QuantumHost-6",
+      "time": "16:12:30",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0059",
+      "component": "QuantumHost-6",
+      "time": "16:12:31",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0060",
+      "component": "QuantumHost-6",
+      "time": "16:12:32",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0061",
+      "component": "QuantumHost-6",
+      "time": "16:12:33",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0062",
+      "component": "QuantumHost-6",
+      "time": "16:12:34",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0063",
+      "component": "QuantumHost-6",
+      "time": "16:12:35",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0064",
+      "component": "QuantumHost-6",
+      "time": "16:12:36",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0065",
+      "component": "QuantumHost-6",
+      "time": "16:12:37",
+      "event": "QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0066",
+      "component": "QuantumHost-6",
+      "time": "16:12:38",
+      "event": "Quantum channel transmitting qubit from QuantumHost-6",
+      "event_type": "send"
+    },
+    {
+      "log_id": "LOG_0067",
+      "component": "QuantumHost-6",
+      "time": "16:12:39",
+      "event": "Quantum channel successfully transmitted qubit from QuantumHost-6 to QuantumHost-5",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0068",
+      "component": "QuantumAdapter-8",
+      "time": "16:12:40",
+      "event": "QuantumAdapter-8 received event {'with_adapter': QuantumAdapter - 'QuantumAdapter-4'}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0069",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:12:41",
+      "event": "QC_Router_QuantumAdapter-8 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19D41D30>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0070",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:12:42",
+      "event": "QC_Router_QuantumAdapter-8 received packet from QC_Router_QuantumAdapter-4 to QC_Router_QuantumAdapter-8 with data '{'type': 'reconcile_bases', 'data': ['X', 'X', 'Z', 'X', 'X', 'Z', 'X', 'Z', 'Z', 'Z', 'Z', 'X', 'X', 'Z', 'X', 'Z']}'",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0071",
+      "component": "QuantumAdapter-8",
+      "time": "16:12:43",
+      "event": "QuantumAdapter-8 received packet from QC_Router_QuantumAdapter-4",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0072",
+      "component": "QuantumAdapter-8",
+      "time": "16:12:44",
+      "event": "QuantumAdapter-8 received QKD transmission packet",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0073",
+      "component": "QuantumHost-6",
+      "time": "16:12:45",
+      "event": "QuantumHost-6 received classical data: reconcile_bases",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0074",
+      "component": "QuantumHost-6",
+      "time": "16:12:46",
+      "event": "QuantumHost-6 received event {'message': {'type': 'reconcile_bases', 'data': ['X', 'X', 'Z', 'X', 'X', 'Z', 'X', 'Z', 'Z', 'Z', 'Z', 'X', 'X', 'Z', 'X', 'Z']}}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0075",
+      "component": "QuantumAdapter-8",
+      "time": "16:12:47",
+      "event": "QuantumAdapter-8 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD19D42CF0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0076",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:12:48",
+      "event": "QC_Router_QuantumAdapter-8 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD19D42CF0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0077",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:12:49",
+      "event": "QC_Router_QuantumAdapter-4 received packet from QC_Router_QuantumAdapter-8 to QC_Router_QuantumAdapter-4 with data '{'type': 'shared_bases_indices', 'data': [1, 2, 3, 5, 7, 10, 11, 14, 15], 'sender': QuantumHost - 'QuantumHost-6'}'",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0078",
+      "component": "QuantumAdapter-4",
+      "time": "16:12:50",
+      "event": "QuantumAdapter-4 received packet from QC_Router_QuantumAdapter-8",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0079",
+      "component": "QuantumAdapter-4",
+      "time": "16:12:51",
+      "event": "QuantumAdapter-4 received QKD transmission packet",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0080",
+      "component": "QuantumHost-5",
+      "time": "16:12:52",
+      "event": "QuantumHost-5 received classical data: shared_bases_indices",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0081",
+      "component": "QuantumHost-5",
+      "time": "16:12:53",
+      "event": "QuantumHost-5 received event {'message': {'type': 'shared_bases_indices', 'data': [1, 2, 3, 5, 7, 10, 11, 14, 15], 'sender': QuantumHost - 'QuantumHost-6'}}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0082",
+      "component": "QuantumAdapter-4",
+      "time": "16:12:54",
+      "event": "QuantumAdapter-4 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD19B6AFD0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0083",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:12:55",
+      "event": "QC_Router_QuantumAdapter-4 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD19B6AFD0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0084",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:12:56",
+      "event": "QC_Router_QuantumAdapter-8 received packet from QC_Router_QuantumAdapter-4 to QC_Router_QuantumAdapter-8 with data '{'type': 'estimate_error_rate', 'data': [(1, 1), (0, 0), (1, 1)]}'",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0085",
+      "component": "QuantumAdapter-8",
+      "time": "16:12:57",
+      "event": "QuantumAdapter-8 received packet from QC_Router_QuantumAdapter-4",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0086",
+      "component": "QuantumAdapter-8",
+      "time": "16:12:58",
+      "event": "QuantumAdapter-8 received QKD transmission packet",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0087",
+      "component": "QuantumHost-6",
+      "time": "16:12:59",
+      "event": "QuantumHost-6 received classical data: estimate_error_rate",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0088",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:00",
+      "event": "QuantumAdapter-8 received packet from ClassicalHost-2",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0089",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:01",
+      "event": "QuantumAdapter-8 encrypting packet for QuantumAdapter-4",
+      "event_type": "encrypt"
+    },
+    {
+      "log_id": "LOG_0090",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:02",
+      "event": "QuantumAdapter-8 encrypted data 'hi prateek nice to meet you ' to 'bytearray(b'`a(pzatmec(fike |o(eme| ygu(')'",
+      "event_type": "encrypt"
+    },
+    {
+      "log_id": "LOG_0091",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:03",
+      "event": "QuantumAdapter-8 forwarding packet from ClassicalHost-2 to QC_Router_QuantumAdapter-4",
+      "event_type": "routing"
+    },
+    {
+      "log_id": "LOG_0092",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:04",
+      "event": "QuantumAdapter-8 using direct connection to QC_Router_QuantumAdapter-4",
+      "event_type": "process"
+    },
+    {
+      "log_id": "LOG_0093",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:05",
+      "event": "QuantumAdapter-8 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19B6AFD0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0094",
+      "component": "QuantumHost-6",
+      "time": "16:13:06",
+      "event": "QuantumHost-6 received event {'message': {'type': 'estimate_error_rate', 'data': [(1, 1), (0, 0), (1, 1)]}}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0095",
+      "component": "QuantumAdapter-8",
+      "time": "16:13:07",
+      "event": "QuantumAdapter-8 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD19B6A490>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0096",
+      "component": "QC_Router_QuantumAdapter-8",
+      "time": "16:13:08",
+      "event": "QC_Router_QuantumAdapter-8 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD19B6A490>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0097",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:13:09",
+      "event": "QC_Router_QuantumAdapter-4 received packet from QC_Router_QuantumAdapter-8 to QC_Router_QuantumAdapter-4 with data '{'type': 'complete'}'",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0098",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:10",
+      "event": "QuantumAdapter-4 received packet from QC_Router_QuantumAdapter-8",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0099",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:11",
+      "event": "QuantumAdapter-4 received QKD transmission packet",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0100",
+      "component": "QuantumHost-5",
+      "time": "16:13:12",
+      "event": "QuantumHost-5 received classical data: complete",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0101",
+      "component": "QuantumHost-5",
+      "time": "16:13:13",
+      "event": "QuantumHost-5 completed QKD and established a shared key",
+      "event_type": "complete"
+    },
+    {
+      "log_id": "LOG_0102",
+      "component": "QuantumHost-5",
+      "time": "16:13:14",
+      "event": "QuantumHost-5 received event {'message': {'type': 'complete'}}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0103",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:15",
+      "event": "QuantumAdapter-4 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD1C109810>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0104",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:13:16",
+      "event": "QC_Router_QuantumAdapter-4 received event {'packet': <quantum_network.packet.QKDTransmissionPacket object at 0x000002BD1C109810>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0105",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:13:17",
+      "event": "QC_Router_QuantumAdapter-4 received packet from ClassicalHost-2 to QC_Router_QuantumAdapter-4 with data 'bytearray(b'`a(pzatmec(fike |o(eme| ygu(')'",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0106",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:18",
+      "event": "QuantumAdapter-4 received packet from ClassicalHost-2",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0107",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:19",
+      "event": "QuantumAdapter-4 processing packet from ClassicalHost-2",
+      "event_type": "process"
+    },
+    {
+      "log_id": "LOG_0108",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:20",
+      "event": "QuantumAdapter-4 decrypted data 'bytearray(b'`a(pzatmec(fike |o(eme| ygu(')' to 'hi prateek nice to meet you '",
+      "event_type": "decrypt"
+    },
+    {
+      "log_id": "LOG_0109",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:21",
+      "event": "QuantumAdapter-4 forwarding decrypted packet to ClassicalHost-1",
+      "event_type": "routing"
+    },
+    {
+      "log_id": "LOG_0110",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:22",
+      "event": "QuantumAdapter-4 forwarding packet from ClassicalHost-2 to ClassicalHost-1",
+      "event_type": "routing"
+    },
+    {
+      "log_id": "LOG_0111",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:23",
+      "event": "QuantumAdapter-4 routing via next hop ClassicalRouter-3",
+      "event_type": "routing"
+    },
+    {
+      "log_id": "LOG_0112",
+      "component": "QuantumAdapter-4",
+      "time": "16:13:24",
+      "event": "QuantumAdapter-4 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19B6AFD0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0113",
+      "component": "QC_Router_QuantumAdapter-4",
+      "time": "16:13:25",
+      "event": "QC_Router_QuantumAdapter-4 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19B6AFD0>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0114",
+      "component": "ClassicalRouter-3",
+      "time": "16:13:26",
+      "event": "ClassicalRouter-3 received packet from ClassicalHost-2 to ClassicalHost-1 with data 'hi prateek nice to meet you '",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0115",
+      "component": "ClassicalRouter-3",
+      "time": "16:13:27",
+      "event": "ClassicalRouter-3 routing packet directly to ClassicalHost-1",
+      "event_type": "routing"
+    },
+    {
+      "log_id": "LOG_0116",
+      "component": "ClassicalRouter-3",
+      "time": "16:13:28",
+      "event": "ClassicalRouter-3 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19B6A490>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0117",
+      "component": "ClassicalHost-1",
+      "time": "16:13:29",
+      "event": "ClassicalHost-1 received event {'packet': <classical_network.packet.ClassicDataPacket object at 0x000002BD19B6A490>}",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0118",
+      "component": "ClassicalHost-1",
+      "time": "16:13:30",
+      "event": "ClassicalHost-1 received data 'hi prateek nice to meet you '",
+      "event_type": "receive"
+    },
+    {
+      "log_id": "LOG_0119",
+      "component": "ClassicalHost-1",
+      "time": "16:13:31",
+      "event": "ClassicalHost-1 received event {'data': 'hi prateek nice to meet you '}",
+      "event_type": "receive"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "type": "object",
+  "required": [
+    "logs"
+  ],
+  "properties": {
+    "logs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "log_id",
+          "component",
+          "time",
+          "event",
+          "event_type"
+        ],
+        "properties": {
+          "log_id": {
+            "type": "string",
+            "pattern": "^LOG_\\d{4}$",
+            "description": "Unique identifier for the log entry"
+          },
+          "component": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the component generating the log"
+          },
+          "time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)$",
+            "description": "Time of the event in HH:MM:SS format"
+          },
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Description of the event"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "creation",
+              "send",
+              "receive",
+              "routing",
+              "encrypt",
+              "decrypt",
+              "complete",
+              "initiate",
+              "buffer",
+              "process"
+            ],
+            "description": "Type of event"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

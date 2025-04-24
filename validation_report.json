@@ -1,0 +1,1238 @@
+{
+  "valid": false,
+  "total_logs": 120,
+  "valid_logs": 119,
+  "invalid_logs": 1,
+  "log_results": [
+    {
+      "log_index": 0,
+      "log_id": "LOG_0000",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 1,
+      "log_id": "LOG_0001",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 2,
+      "log_id": "LOG_0002",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 3,
+      "log_id": "LOG_0003",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 4,
+      "log_id": "LOG_0004",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 5,
+      "log_id": "LOG_0005",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 6,
+      "log_id": "LOG_0006",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 7,
+      "log_id": "LOG_0007",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 8,
+      "log_id": "LOG_0008",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 9,
+      "log_id": "LOG_0009",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 10,
+      "log_id": "LOG_0010",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 11,
+      "log_id": "LOG_0011",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 12,
+      "log_id": "LOG_0012",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 13,
+      "log_id": "LOG_0013",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 14,
+      "log_id": "LOG_0014",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 15,
+      "log_id": "LOG_0015",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 16,
+      "log_id": "LOG_0016",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 17,
+      "log_id": "LOG_0017",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 18,
+      "log_id": "LOG_0018",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 19,
+      "log_id": "LOG_0019",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 20,
+      "log_id": "LOG_0020",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 21,
+      "log_id": "LOG_0021",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 22,
+      "log_id": "LOG_0022",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 23,
+      "log_id": "LOG_0023",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 24,
+      "log_id": "LOG_0024",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 25,
+      "log_id": "LOG_0025",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 26,
+      "log_id": "LOG_0026",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 27,
+      "log_id": "LOG_0027",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 28,
+      "log_id": "LOG_0028",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 29,
+      "log_id": "LOG_0029",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 30,
+      "log_id": "LOG_0030",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 31,
+      "log_id": "LOG_0031",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 32,
+      "log_id": "LOG_0032",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 33,
+      "log_id": "LOG_0033",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 34,
+      "log_id": "LOG_0034",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 35,
+      "log_id": "LOG_0035",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 36,
+      "log_id": "LOG_0036",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 37,
+      "log_id": "LOG_0037",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 38,
+      "log_id": "LOG_0038",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 39,
+      "log_id": "LOG_0039",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 40,
+      "log_id": "LOG_0040",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 41,
+      "log_id": "LOG_0041",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 42,
+      "log_id": "LOG_0042",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 43,
+      "log_id": "LOG_0043",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 44,
+      "log_id": "LOG_0044",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 45,
+      "log_id": "LOG_0045",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 46,
+      "log_id": "LOG_0046",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 47,
+      "log_id": "LOG_0047",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 48,
+      "log_id": "LOG_0048",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 49,
+      "log_id": "LOG_0049",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 50,
+      "log_id": "LOG_0050",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 51,
+      "log_id": "LOG_0051",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 52,
+      "log_id": "LOG_0052",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 53,
+      "log_id": "LOG_0053",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 54,
+      "log_id": "LOG_0054",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 55,
+      "log_id": "LOG_0055",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 56,
+      "log_id": "LOG_0056",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 57,
+      "log_id": "LOG_0057",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 58,
+      "log_id": "LOG_0058",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 59,
+      "log_id": "LOG_0059",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 60,
+      "log_id": "LOG_0060",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 61,
+      "log_id": "LOG_0061",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 62,
+      "log_id": "LOG_0062",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 63,
+      "log_id": "LOG_0063",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 64,
+      "log_id": "LOG_0064",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 65,
+      "log_id": "LOG_0065",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 66,
+      "log_id": "LOG_0066",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 67,
+      "log_id": "LOG_0067",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 68,
+      "log_id": "LOG_0068",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 69,
+      "log_id": "LOG_0069",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 70,
+      "log_id": "LOG_0070",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 71,
+      "log_id": "LOG_0071",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 72,
+      "log_id": "LOG_0072",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 73,
+      "log_id": "LOG_0073",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 74,
+      "log_id": "LOG_0074",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 75,
+      "log_id": "LOG_0075",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 76,
+      "log_id": "LOG_0076",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 77,
+      "log_id": "LOG_0077",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 78,
+      "log_id": "LOG_0078",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 79,
+      "log_id": "LOG_0079",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 80,
+      "log_id": "LOG_0080",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 81,
+      "log_id": "LOG_0081",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 82,
+      "log_id": "LOG_0082",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 83,
+      "log_id": "LOG_0083",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 84,
+      "log_id": "LOG_0084",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 85,
+      "log_id": "LOG_0085",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 86,
+      "log_id": "LOG_0086",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 87,
+      "log_id": "LOG_0087",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 88,
+      "log_id": "LOG_0088",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 89,
+      "log_id": "LOG_0089",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 90,
+      "log_id": "LOG_0090",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 91,
+      "log_id": "LOG_0091",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 92,
+      "log_id": "LOG_0092",
+      "valid": false,
+      "errors": [
+        "Field 'event_type' has invalid value: 'quantum'. Allowed values: creation, send, receive, routing, encrypt, decrypt, complete, initiate, buffer, process"
+      ],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": [
+          "event_type"
+        ]
+      }
+    },
+    {
+      "log_index": 93,
+      "log_id": "LOG_0093",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 94,
+      "log_id": "LOG_0094",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 95,
+      "log_id": "LOG_0095",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 96,
+      "log_id": "LOG_0096",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 97,
+      "log_id": "LOG_0097",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 98,
+      "log_id": "LOG_0098",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 99,
+      "log_id": "LOG_0099",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 100,
+      "log_id": "LOG_0100",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 101,
+      "log_id": "LOG_0101",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 102,
+      "log_id": "LOG_0102",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 103,
+      "log_id": "LOG_0103",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 104,
+      "log_id": "LOG_0104",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 105,
+      "log_id": "LOG_0105",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 106,
+      "log_id": "LOG_0106",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 107,
+      "log_id": "LOG_0107",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 108,
+      "log_id": "LOG_0108",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 109,
+      "log_id": "LOG_0109",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 110,
+      "log_id": "LOG_0110",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 111,
+      "log_id": "LOG_0111",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 112,
+      "log_id": "LOG_0112",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 113,
+      "log_id": "LOG_0113",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 114,
+      "log_id": "LOG_0114",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 115,
+      "log_id": "LOG_0115",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 116,
+      "log_id": "LOG_0116",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 117,
+      "log_id": "LOG_0117",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 118,
+      "log_id": "LOG_0118",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    },
+    {
+      "log_index": 119,
+      "log_id": "LOG_0119",
+      "valid": true,
+      "errors": [],
+      "validation_details": {
+        "missing_fields": [],
+        "invalid_fields": []
+      }
+    }
+  ],
+  "components": [
+    "QC_Router_QuantumAdapter-4",
+    "ClassicalHost-1",
+    "QuantumAdapter-4",
+    "QuantumHost-6",
+    "Internet Exchange",
+    "QC_Router_QuantumAdapter-8",
+    "StartClassicalHost-1",
+    "QuantumHost-5",
+    "QuantumAdapter-8",
+    "ClassicalRouter-3",
+    "ClassicalRouter-7",
+    "ClassicalHost-2"
+  ],
+  "event_types": [
+    "receive",
+    "initiate",
+    "process",
+    "creation",
+    "encrypt",
+    "complete",
+    "quantum",
+    "send",
+    "routing",
+    "decrypt"
+  ]
+}

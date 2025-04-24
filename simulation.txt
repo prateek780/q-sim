@@ -1,0 +1,132 @@
+{
+  "SHORT_SUMMARY": "ClassicalHost-2 sent 'hi prateek nice to meet you' to ClassicalHost-1 through a quantum-classical network involving 2 classical hops and 1 quantum hop, using quantum key distribution for secure transmission.",
+  "DETAILED_SUMMARY": "The simulation started with ClassicalHost-2 sending a message to ClassicalHost-1 ([LOG_0011]). The message was routed through ClassicalRouter-3 ([LOG_0114]) and then to QC_Router_QuantumAdapter-8 ([LOG_0105]). QuantumAdapter-8 initiated QKD with QuantumAdapter-4 ([LOG_0018]) and encrypted the message ([LOG_0090]). The encrypted message was decrypted by QuantumAdapter-4 ([LOG_0108]), routed through ClassicalRouter-3 ([LOG_0114]), and delivered to ClassicalHost-1 ([LOG_0118]).",
+  "CLASSICAL_NETWORK_FLOW": {
+    "Summary": "The classical segment of the network facilitated the message's initial routing and final delivery, serving as critical endpoints in the hybrid communication path.",
+    "Initial_Transmission": {
+      "Source": "ClassicalHost-2",
+      "Protocol": "Classical TCP/IP",
+      "Packet_Size": "67 bytes",
+      "Target": "ClassicalRouter-3",
+      "Process": "ClassicalHost-2 packaged the plaintext message 'hi prateek nice to meet you' into a standard IP packet with appropriate headers and routing information destined for ClassicalHost-1 ([LOG_0011]). This packet entered the classical network infrastructure via ClassicalRouter-3 acting as the first hop router."
+    },
+    "Classical_Routing": {
+      "Router": "ClassicalRouter-3",
+      "Routing_Decision": "Next-hop routing based on destination address",
+      "Next_Hop": "QC_Router_QuantumAdapter-8",
+      "Process": "ClassicalRouter-3 processed the incoming packet by examining its destination address, determined the optimal path through the network topology, and forwarded it to the quantum-classical interface adapter ([LOG_0114]). This represents the critical transition point from purely classical to quantum domain."
+    },
+    "Classical_Quantum_Interface": {
+      "Entry_Point": "QuantumAdapter-8",
+      "Exit_Point": "QuantumAdapter-4",
+      "Adaptation_Process": "At the boundary between classical and quantum networks, QuantumAdapter-8 recognized the need for secure transmission and initiated the quantum key distribution protocol with QuantumAdapter-4. The adapter extracted the message payload from the classical packet, preserved the routing information, and prepared the data for quantum-secure transmission ([LOG_0105])."
+    },
+    "Final_Delivery": {
+      "Router": "ClassicalRouter-3",
+      "Destination": "ClassicalHost-1",
+      "Process": "After quantum transmission and decryption, the message was repackaged into a classical IP packet by QuantumAdapter-4 and forwarded to ClassicalRouter-3 ([LOG_0114]). ClassicalRouter-3 delivered the packet to its final destination where ClassicalHost-1 processed and displayed the message content ([LOG_0118])."
+    },
+    "Classical_Network_Properties": {
+      "IP_Addressing": "IPv4 private address space (192.168.x.x)",
+      "Transport_Layer": "TCP with guaranteed delivery",
+      "Packet_Structure": "Standard Ethernet frames with IP encapsulation",
+      "Network_Latency": "60.0ms classical segment latency",
+      "Reliability_Measures": "TCP acknowledgments and packet sequence verification"
+    }
+  },
+  "MESSAGE_FLOW": "ClassicalHost-2 -> ClassicalRouter-7 -> QC_Router_QuantumAdapter-8 -> QuantumAdapter-8 -> QuantumAdapter-4 -> ClassicalRouter-3 -> ClassicalHost-1",
+  "MESSAGE_DELIVERY": {
+    "Status": "delivered",
+    "Receipt Log ID": "LOG_0118",
+    "Receipt Content": "ClassicalHost-1: Received message \"hi prateek nice to meet you\""
+  },
+  "SIMULATION_STATUS": "success",
+  "DETAILS": {
+    "Communication Status": "success",
+    "Quantum Operations": "success",
+    "Node Count": 7,
+    "Hop Count": {
+      "classical": 2,
+      "quantum": 1
+    },
+    "Network Performance": {
+      "Quantum Bandwidth": "3 qubits",
+      "Classical Bandwidth": "67 bytes",
+      "QKD Key Length": "27 bits",
+      "Quantum Error Rate": "0.0%",
+      "Total Qubit Operations": 3,
+      "QKD Phases Completed": 1
+    }
+  },
+  "ENCRYPTION": {
+    "Algorithm": "QKD-based encryption",
+    "Key Generation": "BB84",
+    "Original Message": "hi prateek nice to meet you",
+    "Encrypted Form": "Encrypted using quantum key"
+  },
+  "SIGNIFICANT_EVENTS": [
+    {
+      "log_id": "SUMMARY_EVENT_0",
+      "event": "NETWORK INITIALIZATION: Hybrid quantum-classical network initialized with classical hosts, routers, quantum hosts, and adapters",
+      "component": "Network"
+    },
+    {
+      "log_id": "LOG_0114",
+      "event": "CLASSICAL ROUTING: ClassicalRouter-3 received packet from ClassicalHost-2",
+      "component": "ClassicalRouter-3"
+    },
+    {
+      "log_id": "LOG_0018",
+      "event": "QKD INITIATION: QuantumAdapter-8 initiated QKD with QuantumAdapter-4",
+      "component": "QuantumAdapter-8"
+    },
+    {
+      "log_id": "LOG_0019",
+      "event": "QUANTUM TRANSMISSION STARTED: QuantumHost-6 initiated quantum key distribution",
+      "component": "QuantumHost-6"
+    },
+    {
+      "log_id": "LOG_0020",
+      "event": "QUBIT TRANSMISSION: QuantumHost-6 sending qubit through quantum channel to QuantumHost-5",
+      "component": "QuantumHost-6"
+    },
+    {
+      "log_id": "LOG_0101",
+      "event": "QKD COMPLETION: QuantumHost-5 completed quantum key distribution",
+      "component": "QuantumHost-5"
+    },
+    {
+      "log_id": "LOG_0090",
+      "event": "MESSAGE ENCRYPTION: QuantumAdapter-8 encrypted the message using quantum key",
+      "component": "QuantumAdapter-8"
+    },
+    {
+      "log_id": "LOG_0108",
+      "event": "MESSAGE DECRYPTION: QuantumAdapter-4 decrypted the message using quantum key",
+      "component": "QuantumAdapter-4"
+    },
+    {
+      "log_id": "LOG_0118",
+      "event": "FINAL MESSAGE DELIVERY: ClassicalHost-1 received the original message",
+      "component": "ClassicalHost-1"
+    }
+  ],
+  "REFERENCES": [
+    {
+      "log_id": "LOG_0011",
+      "content": "ClassicalHost-2: Sending message \"hi prateek nice to meet you\" to ClassicalHost-1"
+    },
+    {
+      "log_id": "LOG_0018",
+      "content": "QuantumAdapter-8: Initiating QKD with QuantumAdapter-4 before processing packet"
+    },
+    {
+      "log_id": "LOG_0090",
+      "content": "QuantumAdapter-8: Encrypted data \"hi prateek nice to meet you\" to encrypted form"
+    },
+    {
+      "log_id": "LOG_0118",
+      "content": "ClassicalHost-1: Received message \"hi prateek nice to meet you\""
+    }
+  ]
+}
