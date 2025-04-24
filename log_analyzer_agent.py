@@ -13,7 +13,6 @@ import sys
 import argparse
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple, Union
-from pydantic import BaseModel
 
 # Try to import Groq or fallback to local implementation
 try:
@@ -56,54 +55,6 @@ except ImportError:
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 if not GROQ_API_KEY:
     print("Warning: GROQ_API_KEY not found in environment variables or .env file.")
-
-# Import Redis log models
-try:
-    from data.models.simulation.log_model import (
-        LogEntryModel, 
-        get_logs_by_simulation,
-        get_entity_logs,
-        LogLevel
-    )
-    from data.models.connection.redis import get_redis_conn
-    REDIS_MODEL_AVAILABLE = True
-except ImportError:
-    print("Warning: Redis log model not found, some features may be limited")
-    REDIS_MODEL_AVAILABLE = False
-
-from .base_agent import BaseAgent, AgentTask
-
-
-class LogEntry(BaseModel):
-    """Schema for a log entry."""
-
-    # Schema matching Redis LogEntryModel
-    timestamp: datetime
-    level: str
-    component: str
-    details: Dict[str, Any] = {}
-    entity_type: Optional[str] = None
-    entity_id: Optional[str] = None
-    simulation_id: str
-
-
-class LogInput(BaseModel):
-    """Input schema for log summarization tasks."""
-
-    simulation_id: str
-    max_entries: Optional[int] = 100
-    focus_components: Optional[List[str]] = None
-    time_range: Optional[Dict[str, str]] = None
-
-
-class SummaryOutput(BaseModel):
-    """Output schema for log summary."""
-
-    error_count: int
-    warning_count: int
-    key_issues: List[str]
-    component_summary: Dict[str, Dict[str, int]]
-    summary_text: str
 
 
 class LogAnalyzer:
