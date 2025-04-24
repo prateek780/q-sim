@@ -4,6 +4,7 @@ import { getLogger } from "@/helpers/simLogger";
 import { exportToJSON } from "./exportService";
 import { ServerSimulationStatus } from "./api.interface";
 import { ExportDataI } from "./export.interface";
+import { ChatRequestI } from "@/components/ai-agents/message.interface";
 
 // Blank for current host
 const SERVER_HOST = '/api'
@@ -134,6 +135,15 @@ const api = {
         const response = await makeFetchCall(SERVER_HOST + `/simulation/status/`);
 
         return (await response.json()) as ServerSimulationStatus;
+    },
+    sendAgentMessage: async (message: ChatRequestI) => {
+        const response = await makeFetchCall(SERVER_HOST + `/agent/message`, 'POST', message);
+
+        if (!response.ok) {
+            throw new Error(`Failed to send agent message: ${response.statusText}`);
+        }
+
+        return await response.json();
     }
 };
 

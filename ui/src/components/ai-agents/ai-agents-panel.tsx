@@ -21,7 +21,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AGENT_DEFINITION, AgentID } from "./agent-declaration"
 import { DUMMY_CHAT } from "./dummy-chat"
 import { Message } from "./message"
-import { ChatMessageI } from "./message.interface"
+import { ChatMessageI, ChatRequestI } from "./message.interface"
+import api from "@/services/api"
 
 // Agent types and their details
 const agentTypes = AGENT_DEFINITION;
@@ -54,19 +55,33 @@ export function AIAgentsPanel() {
     }
 
     // Extract @mentions from message
-    const extractMention = (message: string): AgentID | null => {
-        const mentionRegex = /@([A-Za-z\s-]+)/
-        const match = message.match(mentionRegex)
-
+    const extractMention = (message: string): { mentionedAgentId: AgentID | null, cleanMessage: string } => {
+        // Create a regex pattern dynamically from agent names
+        const agentNames = agentTypes.map(a => a.name.replace(/[-\s]/g, '[-\\s]+')).join('|');
+        const mentionRegex = new RegExp(`@(${agentNames})\\b`, 'i');
+        
+        const match = message.match(mentionRegex);
+        
         if (match) {
-            const mentionedName = match[1].trim()
-            const mentionedAgent = agentTypes.find((a) => a.name.toLowerCase() === mentionedName.toLowerCase())
-            return mentionedAgent ? mentionedAgent.id : null
+            const mentionedName = match[1].trim();
+            const mentionedAgent = agentTypes.find(a => 
+                a.name.toLowerCase() === mentionedName.toLowerCase());
+            
+            // Remove the mention part from the message
+            const cleanMessage = message.replace(match[0], '').trim();
+            
+            return {
+                mentionedAgentId: mentionedAgent ? mentionedAgent.id : null,
+                cleanMessage
+            };
         }
-
-        return null
+        
+        return {
+            mentionedAgentId: null,
+            cleanMessage: message
+        };
     }
-
+    
     const handleTopologyDesignerMessage = (message: string) => {
         const responseContent =
             "I've analyzed the network topology and created an optimized design that reduces potential congestion points by 35%. The new topology maintains all required connectivity while improving path diversity."
@@ -128,66 +143,94 @@ export function AIAgentsPanel() {
         return { responseContent, attachments }
     }
 
+    const handleLogSummarizerMessage = (message: string) => {
+        const responseContent =
+            "Log summary complete. Key events identified: 3 critical errors, 5 warnings, and 12 informational messages. Detailed analysis suggests potential misconfiguration in node QuantumHost2."
+        const attachments = [
+            {
+                type: "txt",
+                name: "log_summary.txt",
+                preview: "Critical Errors: 3\nWarnings: 5\nInfo: 12\nDetails: Potential misconfiguration in QuantumHost2.",
+            },
+        ]
+        return { responseContent, attachments }
+    }
+
+    const sendAgentChatMessage = async (agentId: AgentID, content: string, attachments: any[] = []) => {
+        const chatRequest: ChatRequestI = {
+            agent_id: agentId,
+            message: content,
+            // attachments,
+        };
+
+        const response = await api.sendAgentMessage(chatRequest)
+
+        console.log(response)
+    };
+
     // Handle sending a message
     const handleSendMessage = () => {
         if (!inputValue.trim()) return
 
         // Extract mentioned agent
-        const mentionedAgentId = extractMention(inputValue);
+        const {mentionedAgentId, cleanMessage} = extractMention(inputValue);
 
+        
         if (!mentionedAgentId) {
             console.log('Orchestrator agent will handle the message in future. WIP!');
             return;
         }
 
-        const newMessage: ChatMessageI = {
-            id: `user-${Date.now()}`,
-            role: "user",
-            content: inputValue,
-            timestamp: new Date().toLocaleTimeString(),
-            mentionedAgent: mentionedAgentId,
-        }
+        // const newMessage: ChatMessageI = {
+        //     id: `user-${Date.now()}`,
+        //     role: "user",
+        //     content: inputValue,
+        //     timestamp: new Date().toLocaleTimeString(),
+        //     mentionedAgent: mentionedAgentId,
+        // }
 
-        setMessages([...messages, newMessage])
-        setInputValue("")
+        // setMessages([...messages, newMessage])
+        // setInputValue("")
 
         // Generate agent response if an agent was mentioned
         if (mentionedAgentId && activeAgents.includes(mentionedAgentId)) {
-            setTimeout(() => {
+            // setTimeout(() => {
                 const agent = agentTypes.find((a) => a.id === mentionedAgentId);
                 if (!agent) return;
 
-                // Generate a simulated response based on the agent type
-                let responseContent = ""
-                let attachments: any = []
+                sendAgentChatMessage(mentionedAgentId, cleanMessage);
+                // // Generate a simulated response based on the agent type
+                // let responseContent = ""
+                // let attachments: any = []
 
-                const agentHandlers: Record<string, (message: string) => { responseContent: string; attachments: any[] }> = {
-                    "topology-designer": handleTopologyDesignerMessage,
-                    "congestion-monitor": handleCongestionMonitorMessage,
-                    "performance-analyzer": handlePerformanceAnalyzerMessage,
-                    "compound-ai-architect": handleCompoundAIArchitectMessage,
-                }
+                // const agentHandlers: Record<string, (message: string) => { responseContent: string; attachments: any[] }> = {
+                //     "topology-designer": handleTopologyDesignerMessage,
+                //     "congestion-monitor": handleCongestionMonitorMessage,
+                //     "performance-analyzer": handlePerformanceAnalyzerMessage,
+                //     "compound-ai-architect": handleCompoundAIArchitectMessage,
+                //     "log-summarizer": handleLogSummarizerMessage
+                // }
 
-                if (mentionedAgentId && agentHandlers[mentionedAgentId]) {
-                    const result = agentHandlers[mentionedAgentId](inputValue);
-                    responseContent = result.responseContent;
-                    attachments = result.attachments;
-                } else {
-                    // TODO: Default message will be handled by orchestrator agent.
-                    responseContent = "I'm not sure how to respond to that. Please provide more specific instructions.";
-                }
+                // if (mentionedAgentId && agentHandlers[mentionedAgentId]) {
+                //     const result = agentHandlers[mentionedAgentId](inputValue);
+                //     responseContent = result.responseContent;
+                //     attachments = result.attachments;
+                // } else {
+                //     // TODO: Default message will be handled by orchestrator agent.
+                //     responseContent = "I'm not sure how to respond to that. Please provide more specific instructions.";
+                // }
 
-                const responseMessage: ChatMessageI = {
-                    id: `agent-${Date.now()}`,
-                    role: "agent",
-                    agentId: mentionedAgentId,
-                    content: responseContent,
-                    timestamp: new Date().toLocaleTimeString(),
-                    attachments: attachments,
-                }
+                // const responseMessage: ChatMessageI = {
+                //     id: `agent-${Date.now()}`,
+                //     role: "agent",
+                //     agentId: mentionedAgentId,
+                //     content: responseContent,
+                //     timestamp: new Date().toLocaleTimeString(),
+                //     attachments: attachments,
+                // }
 
-                setMessages((prev) => [...prev, responseMessage])
-            }, 1000)
+                // setMessages((prev) => [...prev, responseMessage])
+            // }, 1000)
         }
     }
 

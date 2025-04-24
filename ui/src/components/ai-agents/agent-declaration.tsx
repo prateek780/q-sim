@@ -25,6 +25,7 @@ export enum AgentID {
     PERFORMANCE_ANALYZER = "performance-analyzer",
     COMPOUND_AI_ARCHITECT = "compound-ai-architect",
     ORCHESTRATOR = "orchestrator",
+    LOG_SUMMARIZER = "log-summarizer"
 }
 
 export const AGENT_DEFINITION: AgentI[] = [
@@ -46,21 +47,21 @@ export const AGENT_DEFINITION: AgentI[] = [
             "Congestion prediction heatmap (PNG)",
         ],
     },
-    {
-        id: AgentID.CONGESTION_MONITOR,
-        name: "Congestion Monitor",
-        description: "Detects decoherence and congestion in Q networks in real-time",
-        icon: <AlertTriangle className="h-5 w-5" />,
-        color: "bg-amber-500",
-        textColor: "text-amber-500",
-        borderColor: "border-amber-500",
-        type: "passive",
-        inputs: ["Real-time FLIT transmission data (stream)", "Q network state snapshot (binary)"],
-        outputs: [
-            "Congestion alerts (JSON): timestamp, location, severity",
-            "Interactive network visualization (HTML/PNG)",
-        ],
-    },
+    // {
+    //     id: AgentID.CONGESTION_MONITOR,
+    //     name: "Congestion Monitor",
+    //     description: "Detects decoherence and congestion in Q networks in real-time",
+    //     icon: <AlertTriangle className="h-5 w-5" />,
+    //     color: "bg-amber-500",
+    //     textColor: "text-amber-500",
+    //     borderColor: "border-amber-500",
+    //     type: "passive",
+    //     inputs: ["Real-time FLIT transmission data (stream)", "Q network state snapshot (binary)"],
+    //     outputs: [
+    //         "Congestion alerts (JSON): timestamp, location, severity",
+    //         "Interactive network visualization (HTML/PNG)",
+    //     ],
+    // },
     {
         id: AgentID.PERFORMANCE_ANALYZER,
         name: "Performance Analyzer",
@@ -90,6 +91,21 @@ export const AGENT_DEFINITION: AgentI[] = [
         outputs: [
             "Multi-agent deployment plan (JSON): agents used and resulting topology with explanations",
             "FLIT traffic forecast report (CSV): predicted communication pattern",
+        ],
+    },
+    {
+        id: AgentID.LOG_SUMMARIZER,
+        name: "Log Summarizer",
+        description: "Aggregates and summarizes network logs for quick analysis and reporting",
+        icon: <Cpu className="h-5 w-5" />,
+        color: "bg-gray-500",
+        textColor: "text-gray-500",
+        borderColor: "border-gray-500",
+        type: "passive",
+        inputs: ["Raw network logs (JSON/CSV): detailed event data"],
+        outputs: [
+            "Summary report (HTML): key metrics and anomalies",
+            "Aggregated log data (JSON): structured and filtered logs",
         ],
     },
 ];

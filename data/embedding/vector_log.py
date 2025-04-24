@@ -212,7 +212,6 @@ class VectorLogEntry:
         # Build query for exact match on simulation_id
         query_str = f"@simulation_id:{{{simulation_id}}}"
         query = Query(query_str).sort_by("timestamp", asc=False).paging(0, limit)
-
         try:
             results = redis_conn.ft(VECTOR_INDEX_NAME).search(query)
 

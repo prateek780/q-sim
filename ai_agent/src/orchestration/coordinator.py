@@ -1,16 +1,29 @@
 from typing import Dict, Any, List, Optional
 import asyncio
 import logging
+
+from ai_agent.src.consts.agent_type import AgentType
+from ai_agent.src.consts.workflow_type import WorkflowType
+from config.config import load_config
 from .agent_manager import AgentManager
 
 class Coordinator:
     """Central coordinator for the AI agent system."""
     
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-        self.agent_manager = AgentManager(config)
-        self.active_workflows = {}
-        self.logger = logging.getLogger("coordinator")
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Coordinator, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, "initialized"):
+            self.config = load_config()
+            self.agent_manager = AgentManager()
+            self.active_workflows = {}
+            self.logger = logging.getLogger("coordinator")
+            self.initialized = True
         
     async def initialize_system(self):
         """Initialize all required agents and resources."""
@@ -22,18 +35,18 @@ class Coordinator:
         
     def _register_core_agents(self):
         """Register the core agents required by the system."""
-        from ..agents.log_summarization_agent import LogSummarization
+        from ..agents.log_summarization_agent import LogSummarizationAgent
 
-        self.agent_manager.register_agent("log_summarization", LogSummarization)
+        self.agent_manager.register_agent(AgentType.TOPOLOGY_DESIGNER, LogSummarizationAgent)
         
-    async def execute_workflow(self, workflow_id: str, workflow_data: Dict[str, Any]):
+    async def execute_workflow(self, workflow_id: WorkflowType, workflow_data: Dict[str, Any]):
         """Execute a multi-agent workflow."""
         self.active_workflows[workflow_id] = {"status": "running", "data": {}}
         
         try:
-            if workflow_id == "log_summarization":
+            if workflow_id == WorkflowType.LOG_SUMMARIZATION:
                 # Example of a specific workflow
-                agent_id = "log_summarization"
+                agent_id = AgentType.LOG_SUMMARIZER
                 task_data = workflow_data.get("task_data")
                 
                 self.logger.info(f"Executing workflow {workflow_id} with agent {agent_id}")

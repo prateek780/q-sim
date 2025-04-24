@@ -94,10 +94,8 @@ export function TopBar({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>New Project</DropdownMenuItem>
-                {/* <DropdownMenuItem>Open Project</DropdownMenuItem> */}
+                <DropdownMenuItem onClick={() => (window.location.href = "/")}>New Project</DropdownMenuItem>
                 <DropdownMenuItem onClick={saveCurrentNetwork}>Save</DropdownMenuItem>
-                {/* <DropdownMenuItem>Save As...</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={exportJSONFile}>Export...</DropdownMenuItem>
                 <DropdownMenuItem>Import...</DropdownMenuItem>

@@ -1,6 +1,9 @@
 import os
+import traceback
 from fastapi import FastAPI
 import uvicorn
+from ai_agent.src.orchestration.coordinator import Coordinator
+from config.config import load_config
 from data.models.connection.redis import get_redis_conn
 from server.app import get_app
 from fastapi.concurrency import asynccontextmanager
@@ -19,9 +22,18 @@ async def lifespan(app: FastAPI):
             print("Lifespan: Connected to Redis.")
         else:
             raise Exception("Failed to connect to Redis")
+
     except Exception as e:
         print(f"Lifespan ERROR: Failed to connect to Redis: {e}")
-        # Decide how to handle connection failure
+
+    try:
+        # Initialize the Coordinate class
+        Coordinator()
+        print("Lifespan: Coordinate class initialized.")
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Lifespan ERROR: Failed to initialize Coordinate class: {e}")
+
     yield
     # Shutdown
     print("Lifespan: Disconnecting from Redis...")

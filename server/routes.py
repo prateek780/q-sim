@@ -98,6 +98,9 @@ def register_blueprints(app: FastAPI):
     from server.api.simulation.simulation import simulation_router
     api_router.include_router(simulation_router) 
 
+    from server.api.agent.agent import agent_router
+    api_router.include_router(agent_router)
+
     @api_router.get("/{rest_of_path:path}")
     async def handle_404(rest_of_path: str):
         return Response(content="Route not found", status_code=404)

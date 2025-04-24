@@ -14,3 +14,9 @@ export interface ChatMessageI {
     referencedAgents?: string[];
     attachments?: ChatAttachmentI[];
 }
+
+export interface ChatRequestI {
+    agent_id: string;
+    message: string;
+    tags?: string[];
+}
