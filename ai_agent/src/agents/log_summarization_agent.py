@@ -1,65 +1,76 @@
+import json
+import logging
+import os
+import traceback
 from typing import Dict, Any, List, Optional
-from pydantic import BaseModel
-from datetime import datetime
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain.tools import StructuredTool
+from langchain.agents import create_structured_chat_agent, AgentExecutor
+from langchain.callbacks import StdOutCallbackHandler, LangChainTracer
+
 import re
 
+from ai_agent.src.agents.enums import AgentTaskType
+from ai_agent.src.agents.prompt import get_system_prompt
+from ai_agent.src.agents.structures import ExtractPattersInput, LogSummaryOutput, SummarizeInput
+from ai_agent.src.exceptions.llm_exception import LLMError
+from data.embedding.embedding_util import EmbeddingUtil
+from data.embedding.langchain_integration import SimulationLogRetriever
 from data.embedding.vector_log import VectorLogEntry
+from data.models.simulation.simulation_model import get_simulation
+from data.models.topology.world_model import get_topology_from_redis
 from .base_agent import BaseAgent, AgentTask
 
-
-class LogEntry(BaseModel):
-    """Schema for a log entry."""
-
-    # TODO: This will evolve according to log format
-    timestamp: str
-    level: str
-    component: str
-    message: str
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class LogInput(BaseModel):
-    """Input schema for log summarization tasks."""
-
-    # TODO: This will evolve according to log format and requirement
-    logs: List[str]
-    max_entries: Optional[int] = 100
-    focus_components: Optional[List[str]] = None
-    time_range: Optional[Dict[str, str]] = None
-
-
-class SummaryOutput(BaseModel):
-    """Output schema for log summary."""
-
-    error_count: int
-    warning_count: int
-    key_issues: List[str]
-    component_summary: Dict[str, Dict[str, int]]
-    summary_text: str
 
 
 class LogSummarizationAgent(BaseAgent):
     """Agent for summarizing and analyzing system logs."""
 
+    logger = logging.getLogger(__name__)
+    # Set up LangSmith tracing if you want
+    # os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    # os.environ["LANGCHAIN_API_KEY"] = "..."
+    # os.environ["LANGSMITH_ENDPOINT"]="https://api.smith.langchain.com"
+
+    # # Create handlers
+    # stdout_handler = StdOutCallbackHandler()
+    # tracer = LangChainTracer(project_name="simulator_agent_dev")
+    
     def __init__(self, llm=None):
         super().__init__(
             agent_id="log_summarizer",
             description="Analyzes and summarizes system logs to extract key insights and patterns",
         )
-        self.llm = llm
-        print("LogSummarizationAgent initialized with LLM:", llm)
-        self.tools = {
-            "get_relevant_logs": self._get_relevant_logs
-        }
+        self.llm: ChatOpenAI = llm
+        self.tools = [
+            StructuredTool.from_function(
+                func=self._get_relevant_logs,
+                name="_get_relevant_logs",
+                description="Retrieve relevant logs for analysis",
+            ),
+            StructuredTool.from_function(
+                func=self._get_topology_by_simulation,
+                name="_get_topology_by_simulation",
+                description="Retrieves the detailed network topology configuration for a given simulation ID.",
+            ),
+        ]
+        self.redis_log = SimulationLogRetriever()
+        self.embedding_util = EmbeddingUtil()
 
     def _register_tasks(self) -> Dict[str, AgentTask]:
         """Register all tasks this agent can perform."""
         return {
-            "summarize": AgentTask(
-                task_id="summarize",
+            AgentTaskType.LOG_SUMMARIZATION: AgentTask(
+                task_id=AgentTaskType.LOG_SUMMARIZATION,
                 description="Summarize log entries to identify key issues and patterns",
-                input_schema=LogInput,
-                output_schema=SummaryOutput,
+                input_schema=SummarizeInput,
+                output_schema=LogSummaryOutput,
                 # TODO: Update this example, I picked these logs from internet
                 examples=[
                     {
@@ -86,76 +97,39 @@ class LogSummarizationAgent(BaseAgent):
                     }
                 ],
             ),
-            "extract_patterns": AgentTask(
-                task_id="extract_patterns",
+            AgentTaskType.EXTRACT_PATTERNS: AgentTask(
+                task_id=AgentTaskType.EXTRACT_PATTERNS,
                 description="Extract recurring patterns and anomalies from logs",
-                input_schema=LogInput,
-                output_schema=SummaryOutput,
+                input_schema=ExtractPattersInput,
+                # TODO: Change
+                output_schema=LogSummaryOutput,
                 examples=[],
             ),
         }
     
-    async def get_formatted_logs_by_simulation(self, simulation_id, max_entries=100):
-        """Get formatted logs from vector storage"""
-        log_entries = VectorLogEntry.get_by_simulation(simulation_id, limit=max_entries)
-        
-        # Format for agent processing
-        formatted_logs = []
-        for log in log_entries:
-            # Format timestamp
-            timestamp = log.get("timestamp")
-            if isinstance(timestamp, datetime):
-                timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-                
-            # Format level and component
-            level = log.get("level", "INFO")
-            component = log.get("component", "unknown")
-            
-            # Format details as message
-            details = log.get("details", {})
-            if isinstance(details, dict):
-                message = " ".join(f"{k}={v}" for k, v in details.items())
-            else:
-                message = str(details)
-                
-            # Format in expected log format
-            formatted_logs.append(f"{timestamp} {level} {component} {message}")
-            
-        return formatted_logs
-    
-    async def _get_relevant_logs(self, simulation_id, query, limit=20):
+    def _get_relevant_logs(self, simulation_id: str, query: Optional[str] = '*', limit: int=100):
         """Retrieve logs relevant to a question using vector similarity"""
+        if query == "*":
+            return VectorLogEntry.get_by_simulation(simulation_id)
+
         # Generate embedding for query
         query_embedding = self.embedding_util.generate_embedding(query)
-        
+
         # Search for relevant logs
         return VectorLogEntry.search_similar(
-            query_embedding,
-            top_k=limit,
-            filters={"simulation_id": simulation_id}
+            query_embedding, top_k=limit, filters={"simulation_id": simulation_id}
         )
 
-    async def answer_question(self, simulation_id, question):
-        # Use the tool to retrieve relevant logs
-        relevant_logs = await self.tools["get_relevant_logs"](
-            simulation_id=simulation_id,
-            query=question,
-            limit=10
-        )
-        
-        # Format logs and generate response as before
-        formatted_logs = [self._format_log_for_llm(log) for log in relevant_logs]
-        logs_text = "\n".join(formatted_logs)
-        
-        prompt = f"""
-        Answer based on these logs:
-        {logs_text}
-        
-        QUESTION: {question}
-        """
-        
-        response = await self.llm.agenerate([prompt])
-        return response.generations[0][0].text.strip()
+    def _get_topology_by_simulation(self, simulation_id: str):
+        """Retrieve the topology of a simulation using vector similarity"""
+        simulation = get_simulation(simulation_id)
+        if not simulation:
+            return None
+
+        world = get_topology_from_redis(simulation.world_id)
+        if not world:
+            return None
+        return world.model_dump()
 
     async def process_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Process a direct message to this agent."""
@@ -163,11 +137,11 @@ class LogSummarizationAgent(BaseAgent):
 
         # Determine appropriate task based on message content
         if "summarize" in content.lower() or "summary" in content.lower():
-            task_id = "summarize"
+            task_id = AgentTaskType.LOG_SUMMARIZATION
         elif "pattern" in content.lower() or "anomaly" in content.lower():
-            task_id = "extract_patterns"
+            task_id = AgentTaskType.EXTRACT_PATTERNS
         else:
-            task_id = "summarize"  # Default task
+            task_id = AgentTaskType.LOG_SUMMARIZATION  # Default task
 
         # Extract log entries from message if present
         log_entries = self._extract_logs_from_message(content)
@@ -183,14 +157,16 @@ class LogSummarizationAgent(BaseAgent):
         log_pattern = r"^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}"
         return [line for line in lines if re.match(log_pattern, line)]
 
-    async def run(self, task_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def run(
+        self, task_id: AgentTaskType, input_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute a specific task with the given input data."""
         # Validate input
         validated_input = self.validate_input(task_id, input_data)
 
-        if task_id == "summarize":
+        if task_id == AgentTaskType.LOG_SUMMARIZATION:
             result = await self._summarize_logs(validated_input)
-        elif task_id == "extract_patterns":
+        elif task_id == AgentTaskType.EXTRACT_PATTERNS:
             result = await self._extract_patterns(validated_input)
         else:
             raise ValueError(f"Task {task_id} not supported")
@@ -200,126 +176,69 @@ class LogSummarizationAgent(BaseAgent):
 
     async def _summarize_logs(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Summarize log entries."""
-        logs = input_data.get("logs", [])
+        simulation_id = input_data.get("simulation_id")
+        if simulation_id:
+            logs = self._get_relevant_logs(simulation_id, "*", 5)
+        else:
+            logs = input_data.get("logs", [])
         max_entries = input_data.get("max_entries", 100)
         focus_components = input_data.get("focus_components")
+        user_query = input_data.get("message")
 
         # Process a limited number of entries
         logs = logs[:max_entries]
 
-        # Parse logs into structured format
-        parsed_logs = []
-        for log in logs:
+        output_parser = PydanticOutputParser(pydantic_object=LogSummaryOutput)
+
+        system_template = get_system_prompt()
+
+        system_message_prompt = SystemMessagePromptTemplate.from_template(
+            system_template
+        )
+        human_message_prompt = HumanMessagePromptTemplate.from_template(
+            "{input}\n\n{agent_scratchpad}"
+        )
+        prompt = ChatPromptTemplate.from_messages(
+            [system_message_prompt, human_message_prompt]
+        )
+        prompt = prompt.partial(
+            answer_instructions=output_parser.get_format_instructions()
+        )
+
+        if self.llm and logs and self.tools:
+            llm_with_tools = self.llm.bind_tools(self.tools)
+            
+            agent = create_structured_chat_agent(llm_with_tools, self.tools, prompt)
+            
+            agent_executor = AgentExecutor(
+                agent=agent,
+                tools=self.tools,
+                verbose=True,
+                return_intermediate_steps=True,
+                handle_parsing_errors=True,
+                max_iterations=5,
+                early_stopping_method="force",
+            )
+
             try:
-                parts = log.split(" ", 3)
-                if len(parts) >= 4:
-                    date, time, level, rest = parts
-                    component_msg = rest.split(" ", 1)
-                    component = component_msg[0]
-                    message = component_msg[1] if len(component_msg) > 1 else ""
-
-                    parsed_logs.append(
-                        {
-                            "timestamp": f"{date} {time}",
-                            "level": level,
-                            "component": component,
-                            "message": message,
-                        }
-                    )
-            except Exception:
-                # Skip entries that don't match expected format
-                continue
-
-        # Filter by components if specified
-        if focus_components:
-            parsed_logs = [
-                log for log in parsed_logs if log["component"] in focus_components
-            ]
-
-        # Count errors and warnings
-        error_count = sum(1 for log in parsed_logs if log["level"] == "ERROR")
-        warning_count = sum(1 for log in parsed_logs if log["level"] == "WARN")
-
-        # Analyze by component
-        component_summary = {}
-        for log in parsed_logs:
-            component = log["component"]
-            level = log["level"]
-
-            if component not in component_summary:
-                component_summary[component] = {}
-
-            if level not in component_summary[component]:
-                component_summary[component][level] = 0
-
-            component_summary[component][level] += 1
-
-        # Extract key issues with LLM if available
-        key_issues = []
-        summary_text = ""
-
-        if self.llm and parsed_logs:
-            # Use LLM to extract key issues
-            error_logs = [
-                f"{log['timestamp']} {log['level']} {log['component']} {log['message']}\n"
-                for log in parsed_logs
-                if log["level"] in ["ERROR", "WARN"]
-            ]
-            if error_logs:
-                prompt = f"""
-                Analyze these log entries and identify the key issues:
-                
-                {error_logs}
-                
-                Extract up to 5 key issues from these logs. Be concise.
-                """
-
-                try:
-                    print("Prompt for LLM:", prompt)
-                    response = await self.llm.agenerate([prompt])
-                    issues_text = response.generations[0][0].text
-                    key_issues = [
-                        issue.strip()
-                        for issue in issues_text.split("\n")
-                        if issue.strip()
-                    ]
-
-                    # Also generate summary text
-                    summary_prompt = f"""
-                    Provide a one-sentence summary of these system logs:
-                    
-                    - {error_count} errors and {warning_count} warnings
-                    - Components with issues: {', '.join(component_summary.keys())}
-                    - Key issues: {', '.join(key_issues[:3])}
-                    """
-
-                    summary_response = await self.llm.agenerate([summary_prompt])
-                    summary_text = summary_response.generations[0][0].text.strip()
-
-                except Exception as e:
-                    # Fallback if LLM fails
-                    key_issues = [
-                        f"{log['component']}: {log['message']}"
-                        for log in parsed_logs[:5]
-                        if log["level"] in ["ERROR", "WARN"]
-                    ]
-                    summary_text = f"Found {error_count} errors and {warning_count} warnings across {len(component_summary)} components."
+                response = await agent_executor.ainvoke(
+                    {
+                        "simulation_id": simulation_id,
+                        "logs": json.dumps([logs[0], logs[-1]]),
+                        'total_logs': len(logs),
+                        "input": user_query or f"Summarize logs for simulation ID: {simulation_id}",
+                    }
+                )
+                if "output" in response:
+                    return response["output"]
+                else:
+                    return {"summary": "Failed to generate structured output."}
+            except Exception as e:
+                traceback.print_exc()
+                self.logger.exception(f"Exception during agent execution!")
+                raise LLMError(f"Error during agent execution: {e}")
         else:
-            # Manual extraction without LLM
-            key_issues = [
-                f"{log['component']}: {log['message']}"
-                for log in parsed_logs[:5]
-                if log["level"] in ["ERROR", "WARN"]
-            ]
-            summary_text = f"Found {error_count} errors and {warning_count} warnings across {len(component_summary)} components."
-
-        return {
-            "error_count": error_count,
-            "warning_count": warning_count,
-            "key_issues": key_issues[:5],  # Limit to top 5 issues
-            "component_summary": component_summary,
-            "summary_text": summary_text,
-        }
+            raise Exception("LLM not available, logs invalid, or no tools defined")
 
     async def _extract_patterns(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract recurring patterns from logs."""

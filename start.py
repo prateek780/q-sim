@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 
     try:
         # Initialize the Coordinate class
-        Coordinator()
+        await Coordinator().initialize_system()
         print("Lifespan: Coordinate class initialized.")
     except Exception as e:
         traceback.print_exc()

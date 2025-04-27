@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from pydantic import BaseModel, Field
+import traceback
 
 class AgentInputSchema(BaseModel):
     """Base schema for agent inputs."""
@@ -22,6 +23,7 @@ class BaseAgent(ABC):
     """Base class for all agents in the system."""
     
     def __init__(self, agent_id: str, description: str):
+        print(f"Agent {__class__.__name__} Initialized")
         self.agent_id = agent_id
         self.description = description
         self.tasks = self._register_tasks()
@@ -63,12 +65,29 @@ class BaseAgent(ABC):
         validated = task.input_schema(**input_data)
         return validated.model_dump()
     
-    def validate_output(self, task_id: str, output_data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_output(self, task_id: str, output_data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
         """Validate output data against the task's output schema."""
         task = self.get_task_details(task_id)
         if not task:
             raise ValueError(f"Task {task_id} not supported by this agent")
         
-        # Validate using Pydantic
-        validated = task.output_schema(**output_data)
-        return validated.model_dump()
+        if isinstance(output_data, BaseModel):
+            if not isinstance(output_data, task.output_schema):
+                raise Exception(f"output_data is of type {type(output_data)}, expected type ({task.output_schema})")
+            else:
+                return output_data.model_dump()
+        elif isinstance(output_data, dict):
+            # Validate using Pydantic
+            validated = task.output_schema(**output_data)
+            return validated.model_dump()
+        else:
+            print(f"Unsupported output data type: {type(output_data)}")
+            print(f'''
+            ===================
+            Output Data:
+            ===================
+            {output_data}
+            ===================
+            ''')
+            traceback.print_exc()
+            raise ValueError("Unsupported output data type")

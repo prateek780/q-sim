@@ -1,12 +1,10 @@
+import traceback
 from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import List, Optional
-
 from ai_agent.src.consts.agent_type import AgentType
-from ai_agent.src.consts.workflow_type import WorkflowType
-from ai_agent.src.orchestration.coordinator import Coordinator
-from data.embedding.embedding_util import EmbeddingUtil
-from data.embedding.vector_log import VectorLogEntry
+from fastapi import HTTPException
+
+from server.api.agent.agent_request import AgentInteractionRequest
+from server.api.agent.summarize import handle_summary_request
 
 
 agent_router = APIRouter(
@@ -15,26 +13,17 @@ agent_router = APIRouter(
 )
 
 
-class AgentInteractionRequest(BaseModel):
-    agent_id: AgentType
-    message: str
-    tags: Optional[List[str]] = None
-
+agent_to_handler = {
+    AgentType.LOG_SUMMARIZER: handle_summary_request
+}
 
 @agent_router.post("/message")
 async def get_agent_message(message: AgentInteractionRequest):
-    agent_coordinator = Coordinator()
-    simulation_id = "01JSCW7XRM53FRRV4JKSSPMEPE"
-    # embedding_util = EmbeddingUtil()
-    # query_embedding = embedding_util.generate_embedding('')
-        
-    # Search for relevant logs
-    logs = VectorLogEntry.get_by_simulation(
-        simulation_id
-    )
-    # agent_coordinator.execute_workflow(WorkflowType.LOG_SUMMARIZATION, {
-    #     'task_data': {
-    #         ''
-    #     }
-    # })
-    return logs
+    
+    try:
+        return await agent_to_handler[message.agent_id](message)
+    except KeyError  as e:
+        raise HTTPException(status_code=400, detail=f"Invalid agent type: {message.agent_id}")
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

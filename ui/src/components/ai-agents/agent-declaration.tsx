@@ -3,6 +3,7 @@ import {
     AlertTriangle,
     BarChart2,
     Cpu,
+    Book
 } from "lucide-react"
 import { JSX } from "react/jsx-runtime";
 
@@ -97,7 +98,7 @@ export const AGENT_DEFINITION: AgentI[] = [
         id: AgentID.LOG_SUMMARIZER,
         name: "Log Summarizer",
         description: "Aggregates and summarizes network logs for quick analysis and reporting",
-        icon: <Cpu className="h-5 w-5" />,
+        icon: <Book className="h-5 w-5" />,
         color: "bg-gray-500",
         textColor: "text-gray-500",
         borderColor: "border-gray-500",

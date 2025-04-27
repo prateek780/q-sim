@@ -37,7 +37,7 @@ class Coordinator:
         """Register the core agents required by the system."""
         from ..agents.log_summarization_agent import LogSummarizationAgent
 
-        self.agent_manager.register_agent(AgentType.TOPOLOGY_DESIGNER, LogSummarizationAgent)
+        self.agent_manager.register_agent(AgentType.LOG_SUMMARIZER, LogSummarizationAgent)
         
     async def execute_workflow(self, workflow_id: WorkflowType, workflow_data: Dict[str, Any]):
         """Execute a multi-agent workflow."""
@@ -57,6 +57,8 @@ class Coordinator:
                 # Update workflow status
                 self.active_workflows[workflow_id]["status"] = "completed"
                 self.active_workflows[workflow_id]["result"] = result
+
+                return result
                 
         except Exception as e:
             self.logger.error(f"Workflow {workflow_id} failed: {str(e)}")
@@ -68,10 +70,11 @@ class Coordinator:
         """Execute a task with a specific agent."""
         agent = self.agent_manager.get_agent(agent_id)
         if not agent:
-            raise ValueError(f"Agent {agent_id} not found")
+            raise ValueError(f"Agent {agent_id} not found. Available agents {self.agent_manager.list_agents()}")
             
-        # Execute agent task
-        result = await asyncio.to_thread(agent.run, task_data)
+        # Execute agent task, TODO: Check this
+        # result = await asyncio.to_thread(agent.run, **task_data)
+        result = await agent.run(**task_data)
         return result
         
     def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:

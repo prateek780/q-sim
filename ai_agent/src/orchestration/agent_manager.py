@@ -29,7 +29,7 @@ class AgentManager:
 
         return llm
     
-    def register_agent(self, agent_id: AgentType, agent_class, **kwargs):
+    def register_agent(self, agent_id: AgentType, agent_class: BaseAgent, **kwargs):
         """Register a new agent in the system."""
         if agent_id in self.agents:
             raise ValueError(f"Agent with ID '{agent_id}' already exists")

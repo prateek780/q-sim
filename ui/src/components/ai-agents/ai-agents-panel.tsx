@@ -23,6 +23,7 @@ import { DUMMY_CHAT } from "./dummy-chat"
 import { Message } from "./message"
 import { ChatMessageI, ChatRequestI } from "./message.interface"
 import api from "@/services/api"
+import { LogSummaryResponse } from "./agent_response"
 
 // Agent types and their details
 const agentTypes = AGENT_DEFINITION;
@@ -32,7 +33,7 @@ const initialConversation = DUMMY_CHAT;
 
 // Unified agent chat component
 export function AIAgentsPanel() {
-    const [messages, setMessages] = useState<ChatMessageI[]>(initialConversation)
+    const [messages, setMessages] = useState<ChatMessageI[]>([])
     const [inputValue, setInputValue] = useState("")
     const [activeAgents, setActiveAgents] = useState(agentTypes.map((agent) => agent.id))
     const [currentTab, setCurrentTab] = useState("chat")
@@ -55,33 +56,34 @@ export function AIAgentsPanel() {
     }
 
     // Extract @mentions from message
-    const extractMention = (message: string): { mentionedAgentId: AgentID | null, cleanMessage: string } => {
+    const extractMention = (message: string): { mentionedAgentId: AgentID, cleanMessage: string } => {
         // Create a regex pattern dynamically from agent names
         const agentNames = agentTypes.map(a => a.name.replace(/[-\s]/g, '[-\\s]+')).join('|');
         const mentionRegex = new RegExp(`@(${agentNames})\\b`, 'i');
-        
+
         const match = message.match(mentionRegex);
-        
+
         if (match) {
             const mentionedName = match[1].trim();
-            const mentionedAgent = agentTypes.find(a => 
+            const mentionedAgent = agentTypes.find(a =>
                 a.name.toLowerCase() === mentionedName.toLowerCase());
-            
+
             // Remove the mention part from the message
             const cleanMessage = message.replace(match[0], '').trim();
-            
-            return {
-                mentionedAgentId: mentionedAgent ? mentionedAgent.id : null,
-                cleanMessage
-            };
+            if (mentionedAgent) {
+                return {
+                    mentionedAgentId: mentionedAgent.id,
+                    cleanMessage
+                };
+            }
         }
-        
+
         return {
-            mentionedAgentId: null,
+            mentionedAgentId: AgentID.ORCHESTRATOR,
             cleanMessage: message
         };
     }
-    
+
     const handleTopologyDesignerMessage = (message: string) => {
         const responseContent =
             "I've analyzed the network topology and created an optimized design that reduces potential congestion points by 35%. The new topology maintains all required connectivity while improving path diversity."
@@ -143,17 +145,22 @@ export function AIAgentsPanel() {
         return { responseContent, attachments }
     }
 
-    const handleLogSummarizerMessage = (message: string) => {
-        const responseContent =
-            "Log summary complete. Key events identified: 3 critical errors, 5 warnings, and 12 informational messages. Detailed analysis suggests potential misconfiguration in node QuantumHost2."
-        const attachments = [
-            {
-                type: "txt",
-                name: "log_summary.txt",
-                preview: "Critical Errors: 3\nWarnings: 5\nInfo: 12\nDetails: Potential misconfiguration in QuantumHost2.",
-            },
-        ]
-        return { responseContent, attachments }
+    const handleLogSummarizerMessage = (message: LogSummaryResponse): ChatMessageI => {
+        const responseContent = message.short_summary;
+        // const attachments = [
+        //     {
+        //         type: "txt",
+        //         name: "log_summary.txt",
+        //         preview: "Critical Errors: 3\nWarnings: 5\nInfo: 12\nDetails: Potential misconfiguration in QuantumHost2.",
+        //     },
+        // ]
+        return {
+            content: responseContent,
+            role: 'agent',
+            id: (messages.length + 1).toString(),
+            timestamp: new Date().toISOString(),
+            agentId: AgentID.LOG_SUMMARIZER,
+        }
     }
 
     const sendAgentChatMessage = async (agentId: AgentID, content: string, attachments: any[] = []) => {
@@ -165,7 +172,20 @@ export function AIAgentsPanel() {
 
         const response = await api.sendAgentMessage(chatRequest)
 
-        console.log(response)
+        var responseMessage: ChatMessageI | null= null;
+        switch (agentId) {
+            case AgentID.LOG_SUMMARIZER:
+                responseMessage = handleLogSummarizerMessage(response);
+                break;
+
+            default:
+                console.log("Unknown agent ID:", agentId);
+                break;
+        }
+
+        if(responseMessage){
+            setMessages([...messages, responseMessage]);
+        }
     };
 
     // Handle sending a message
@@ -173,64 +193,13 @@ export function AIAgentsPanel() {
         if (!inputValue.trim()) return
 
         // Extract mentioned agent
-        const {mentionedAgentId, cleanMessage} = extractMention(inputValue);
+        const { mentionedAgentId, cleanMessage } = extractMention(inputValue);
 
-        
-        if (!mentionedAgentId) {
-            console.log('Orchestrator agent will handle the message in future. WIP!');
-            return;
-        }
-
-        // const newMessage: ChatMessageI = {
-        //     id: `user-${Date.now()}`,
-        //     role: "user",
-        //     content: inputValue,
-        //     timestamp: new Date().toLocaleTimeString(),
-        //     mentionedAgent: mentionedAgentId,
-        // }
-
-        // setMessages([...messages, newMessage])
-        // setInputValue("")
-
-        // Generate agent response if an agent was mentioned
         if (mentionedAgentId && activeAgents.includes(mentionedAgentId)) {
-            // setTimeout(() => {
-                const agent = agentTypes.find((a) => a.id === mentionedAgentId);
-                if (!agent) return;
+            const agent = agentTypes.find((a) => a.id === mentionedAgentId);
+            if (!agent) return;
 
-                sendAgentChatMessage(mentionedAgentId, cleanMessage);
-                // // Generate a simulated response based on the agent type
-                // let responseContent = ""
-                // let attachments: any = []
-
-                // const agentHandlers: Record<string, (message: string) => { responseContent: string; attachments: any[] }> = {
-                //     "topology-designer": handleTopologyDesignerMessage,
-                //     "congestion-monitor": handleCongestionMonitorMessage,
-                //     "performance-analyzer": handlePerformanceAnalyzerMessage,
-                //     "compound-ai-architect": handleCompoundAIArchitectMessage,
-                //     "log-summarizer": handleLogSummarizerMessage
-                // }
-
-                // if (mentionedAgentId && agentHandlers[mentionedAgentId]) {
-                //     const result = agentHandlers[mentionedAgentId](inputValue);
-                //     responseContent = result.responseContent;
-                //     attachments = result.attachments;
-                // } else {
-                //     // TODO: Default message will be handled by orchestrator agent.
-                //     responseContent = "I'm not sure how to respond to that. Please provide more specific instructions.";
-                // }
-
-                // const responseMessage: ChatMessageI = {
-                //     id: `agent-${Date.now()}`,
-                //     role: "agent",
-                //     agentId: mentionedAgentId,
-                //     content: responseContent,
-                //     timestamp: new Date().toLocaleTimeString(),
-                //     attachments: attachments,
-                // }
-
-                // setMessages((prev) => [...prev, responseMessage])
-            // }, 1000)
+            sendAgentChatMessage(mentionedAgentId, cleanMessage);
         }
     }
 
