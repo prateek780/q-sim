@@ -11,3 +11,9 @@ class LLMConfig(BaseModel):
     temperature: float = Field(0.2, ge=0.0, le=1.0)
     max_tokens: Optional[int] = 1000
     retry_attempts: int = 3
+
+    # LangChain Config
+    langchain_api_key: Optional[SecretStr] = None
+    langchain_project_name: str = "simulator_agent_dev"
+    langsmith_endpoint: Optional[str] = "https://api.smith.langchain.com"
+    langchain_tracing: bool = False

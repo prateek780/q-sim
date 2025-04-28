@@ -17,6 +17,7 @@ from langchain.callbacks import StdOutCallbackHandler, LangChainTracer
 import re
 
 from ai_agent.src.agents.enums import AgentTaskType
+from ai_agent.src.agents.examples import EXAMPLES
 from ai_agent.src.agents.prompt import get_system_prompt
 from ai_agent.src.agents.structures import ExtractPattersInput, LogSummaryOutput, SummarizeInput
 from ai_agent.src.exceptions.llm_exception import LLMError
@@ -31,16 +32,7 @@ from .base_agent import BaseAgent, AgentTask
 
 class LogSummarizationAgent(BaseAgent):
     """Agent for summarizing and analyzing system logs."""
-
     logger = logging.getLogger(__name__)
-    # Set up LangSmith tracing if you want
-    # os.environ["LANGCHAIN_TRACING_V2"] = "true"
-    # os.environ["LANGCHAIN_API_KEY"] = "..."
-    # os.environ["LANGSMITH_ENDPOINT"]="https://api.smith.langchain.com"
-
-    # # Create handlers
-    # stdout_handler = StdOutCallbackHandler()
-    # tracer = LangChainTracer(project_name="simulator_agent_dev")
     
     def __init__(self, llm=None):
         super().__init__(
@@ -71,39 +63,7 @@ class LogSummarizationAgent(BaseAgent):
                 description="Summarize log entries to identify key issues and patterns",
                 input_schema=SummarizeInput,
                 output_schema=LogSummaryOutput,
-                # TODO: Update this example, I picked these logs from internet
-                examples=[
-                    {
-                        "input": {
-                            "logs": [
-                                "2023-10-01 14:23:05 ERROR topology_designer Failed to analyze network: Invalid format",
-                                "2023-10-01 14:23:10 WARN congestion_monitor High packet loss detected in node N7",
-                            ],
-                            "max_entries": 50,
-                        },
-                        "output": {
-                            "error_count": 1,
-                            "warning_count": 1,
-                            "key_issues": [
-                                "Topology designer failed due to format issues",
-                                "High packet loss in node N7",
-                            ],
-                            "component_summary": {
-                                "topology_designer": {"ERROR": 1},
-                                "congestion_monitor": {"WARN": 1},
-                            },
-                            "summary_text": "The system encountered format issues in the topology designer and packet loss in node N7.",
-                        },
-                    }
-                ],
-            ),
-            AgentTaskType.EXTRACT_PATTERNS: AgentTask(
-                task_id=AgentTaskType.EXTRACT_PATTERNS,
-                description="Extract recurring patterns and anomalies from logs",
-                input_schema=ExtractPattersInput,
-                # TODO: Change
-                output_schema=LogSummaryOutput,
-                examples=[],
+                examples=EXAMPLES,
             ),
         }
     

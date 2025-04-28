@@ -9,6 +9,9 @@ class SummarizeInput(BaseModel):
     """Input schema for log summarization tasks."""
 
     simulation_id: str
+    simulation_id: str = Field(
+        description="The unique identifier for the simulation run to be summarized."
+    )
 
 
 class ExtractPattersInput(LogEntryModel):

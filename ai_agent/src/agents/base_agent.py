@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Type
 from pydantic import BaseModel, Field
 import traceback
+
+from ai_agent.src.agents.enums import AgentTaskType
 
 class AgentInputSchema(BaseModel):
     """Base schema for agent inputs."""
@@ -13,11 +16,22 @@ class AgentOutputSchema(BaseModel):
 
 class AgentTask(BaseModel):
     """Definition of a task that an agent can perform."""
-    task_id: str
+    task_id: AgentTaskType
     description: str
-    input_schema: Any  # Reference to a Pydantic model class
-    output_schema: Any  # Reference to a Pydantic model class
+    input_schema: Type[BaseModel]
+    output_schema: Type[BaseModel]
     examples: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+
+    def get_model_description(self) -> str:
+        """Generate a description of the input and output models."""
+        return f"""
+        Task: {self.task_id.value}
+        Description: {self.description}
+        Input: {self.input_schema.model_json_schema()}
+        Output: {self.output_schema.model_json_schema()}
+        
+        Examples: {self.examples}
+        """
 
 class BaseAgent(ABC):
     """Base class for all agents in the system."""
@@ -38,7 +52,7 @@ class BaseAgent(ABC):
         return {
             "agent_id": self.agent_id,
             "description": self.description,
-            "tasks": {task_id: task.description for task_id, task in self.tasks.items()}
+            "tasks": "\n\n".join([f"{task.get_model_description()}" for task_id, task in self.tasks.items()])
         }
     
     def get_task_details(self, task_id: str) -> Optional[AgentTask]:

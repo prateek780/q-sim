@@ -21,12 +21,12 @@ interface AgentI {
 }
 
 export enum AgentID {
-    TOPOLOGY_DESIGNER = "topology-designer",
-    CONGESTION_MONITOR = "congestion-monitor",
-    PERFORMANCE_ANALYZER = "performance-analyzer",
-    COMPOUND_AI_ARCHITECT = "compound-ai-architect",
+    TOPOLOGY_DESIGNER = "topology_designer",
+    CONGESTION_MONITOR = "congestion_monitor",
+    PERFORMANCE_ANALYZER = "performance_analyzer",
+    COMPOUND_AI_ARCHITECT = "compound_ai_architect",
     ORCHESTRATOR = "orchestrator",
-    LOG_SUMMARIZER = "log-summarizer"
+    LOG_SUMMARIZER = "log_summarizer"
 }
 
 export const AGENT_DEFINITION: AgentI[] = [

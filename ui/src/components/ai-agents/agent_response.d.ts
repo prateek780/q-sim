@@ -30,3 +30,13 @@ export interface CommunicationFlow {
     path: string[]
     relevant_log_pks: string[]
 }
+
+
+export interface OrchestratorResponse extends AgentResponse {
+    agent_id: string
+    task_id: string
+    input_data: InputData
+    reason: string
+    suggestion: any
+    agent_response: AgentResponse
+}

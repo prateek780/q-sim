@@ -1,10 +1,12 @@
+from typing import Any, Dict
 from ai_agent.src.agents.enums import AgentTaskType
 from ai_agent.src.consts.workflow_type import WorkflowType
 from ai_agent.src.orchestration.coordinator import Coordinator
-from server.api.agent.agent_request import AgentInteractionRequest
+from server.api.agent.agent_request import LogSummaryRequest
 
 
-async def handle_summary_request(message: AgentInteractionRequest):
+async def handle_summary_request(message_dict: Dict[str, Any] ):
+    message = LogSummaryRequest(**message_dict)
     agent_coordinator = Coordinator()
     
     response = await agent_coordinator.execute_workflow(

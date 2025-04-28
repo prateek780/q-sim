@@ -17,6 +17,6 @@ export interface ChatMessageI {
 
 export interface ChatRequestI {
     agent_id: string;
-    message: string;
+    user_query: string;
     tags?: string[];
 }

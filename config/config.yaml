@@ -8,6 +8,11 @@ llm:
   temperature: 0.2
   max_tokens: 1000
   retry_attempts: 3
+
+  # LangChain Config
+  langchain_api_key: "${LANGCHAIN_API_KEY}"
+  langchain_project_name: "simulator_agent_dev"
+  langchain_tracing: true
   
 logging:
   level: "INFO"

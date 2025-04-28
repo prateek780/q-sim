@@ -12,6 +12,7 @@ import {
     RefreshCw,
     Download,
     Info,
+    Loader2,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -23,7 +24,8 @@ import { DUMMY_CHAT } from "./dummy-chat"
 import { Message } from "./message"
 import { ChatMessageI, ChatRequestI } from "./message.interface"
 import api from "@/services/api"
-import { LogSummaryResponse } from "./agent_response"
+import { LogSummaryResponse, OrchestratorResponse } from "./agent_response"
+import { getLogger } from "@/helpers/simLogger"
 
 // Agent types and their details
 const agentTypes = AGENT_DEFINITION;
@@ -37,7 +39,9 @@ export function AIAgentsPanel() {
     const [inputValue, setInputValue] = useState("")
     const [activeAgents, setActiveAgents] = useState(agentTypes.map((agent) => agent.id))
     const [currentTab, setCurrentTab] = useState("chat")
+    const [agentInProgress, setAgentInProgress] = useState<boolean>(false);
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const logger = getLogger("AIAgentsPanel")
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -145,15 +149,27 @@ export function AIAgentsPanel() {
         return { responseContent, attachments }
     }
 
+    const handleOrchestratorResponse = (message: OrchestratorResponse): ChatMessageI | null => {
+        if (!message.agent_id) {
+            // Could not find relevant agent
+            return {
+                content: message.suggestion,
+                role: 'agent',
+                id: (messages.length + 1).toString(),
+                timestamp: new Date().toISOString(),
+                agentId: AgentID.ORCHESTRATOR,
+            }
+        } else if (message.agent_response) {
+            handleReceivedMessage(message.agent_id as AgentID, message.agent_response)
+        } else {
+            logger.error("Orchestrator response does not contain agent response")
+        }
+        return null
+
+    }
+
     const handleLogSummarizerMessage = (message: LogSummaryResponse): ChatMessageI => {
         const responseContent = message.short_summary;
-        // const attachments = [
-        //     {
-        //         type: "txt",
-        //         name: "log_summary.txt",
-        //         preview: "Critical Errors: 3\nWarnings: 5\nInfo: 12\nDetails: Potential misconfiguration in QuantumHost2.",
-        //     },
-        // ]
         return {
             content: responseContent,
             role: 'agent',
@@ -163,19 +179,15 @@ export function AIAgentsPanel() {
         }
     }
 
-    const sendAgentChatMessage = async (agentId: AgentID, content: string, attachments: any[] = []) => {
-        const chatRequest: ChatRequestI = {
-            agent_id: agentId,
-            message: content,
-            // attachments,
-        };
-
-        const response = await api.sendAgentMessage(chatRequest)
-
-        var responseMessage: ChatMessageI | null= null;
+    const handleReceivedMessage = async (agentId: AgentID, response: any) => {
+        var responseMessage: ChatMessageI | null = null;
         switch (agentId) {
             case AgentID.LOG_SUMMARIZER:
                 responseMessage = handleLogSummarizerMessage(response);
+                break;
+
+            case AgentID.ORCHESTRATOR:
+                responseMessage = handleOrchestratorResponse(response);
                 break;
 
             default:
@@ -183,23 +195,38 @@ export function AIAgentsPanel() {
                 break;
         }
 
-        if(responseMessage){
+        if (responseMessage) {
             setMessages([...messages, responseMessage]);
         }
+    }
+
+    const sendAgentChatMessage = async (agentId: AgentID, content: string, attachments: any[] = []) => {
+        const chatRequest: ChatRequestI = {
+            agent_id: agentId,
+            user_query: content,
+        };
+
+        const response = await api.sendAgentMessage(chatRequest)
+
+        await handleReceivedMessage(agentId, response);
     };
 
     // Handle sending a message
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (!inputValue.trim()) return
 
-        // Extract mentioned agent
-        const { mentionedAgentId, cleanMessage } = extractMention(inputValue);
+        try {
+            setAgentInProgress(true);
+            // Extract mentioned agent
+            const { mentionedAgentId, cleanMessage } = extractMention(inputValue);
 
-        if (mentionedAgentId && activeAgents.includes(mentionedAgentId)) {
-            const agent = agentTypes.find((a) => a.id === mentionedAgentId);
-            if (!agent) return;
-
-            sendAgentChatMessage(mentionedAgentId, cleanMessage);
+            if (mentionedAgentId && (activeAgents.includes(mentionedAgentId) || mentionedAgentId === AgentID.ORCHESTRATOR)) {
+                await sendAgentChatMessage(mentionedAgentId, cleanMessage);
+            }
+            setAgentInProgress(false);
+        } catch (error) {
+            console.error("Error sending message:", error);
+            setAgentInProgress(false);
         }
     }
 
@@ -348,8 +375,8 @@ export function AIAgentsPanel() {
                             </div>
 
                             <Button onClick={handleSendMessage} className="flex-shrink-0">
-                                <Send className="h-4 w-4 mr-2" />
-                                Send
+                                {agentInProgress ? <Loader2 className="animate-spin" /> : <Send className="h-4 w-4 mr-2" />
+                                }
                             </Button>
                         </div>
                     </div>

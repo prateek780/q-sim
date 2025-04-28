@@ -1,9 +1,9 @@
 from enum import Enum
 
 class AgentType(Enum):
-    LOG_SUMMARIZER = "log-summarizer"
-    TOPOLOGY_DESIGNER = "topology-designer"
-    CONGESTION_MONITOR = "congestion-monitor"
-    PERFORMANCE_ANALYZER = "performance-analyzer"
-    COMPOUND_AI_ARCHITECT = "compound-ai-architect"
+    LOG_SUMMARIZER = "log_summarizer"
+    TOPOLOGY_DESIGNER = "topology_designer"
+    CONGESTION_MONITOR = "congestion_monitor"
+    PERFORMANCE_ANALYZER = "performance_analyzer"
+    COMPOUND_AI_ARCHITECT = "compound_ai_architect"
     ORCHESTRATOR = "orchestrator"

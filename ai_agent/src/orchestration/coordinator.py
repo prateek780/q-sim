@@ -4,6 +4,7 @@ import logging
 
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.consts.workflow_type import WorkflowType
+from ai_agent.src.exceptions.llm_exception import LLMError
 from config.config import load_config
 from .agent_manager import AgentManager
 
@@ -59,12 +60,27 @@ class Coordinator:
                 self.active_workflows[workflow_id]["result"] = result
 
                 return result
-                
+            
+            elif workflow_id == WorkflowType.ROUTING:
+                routing_output = self.agent_manager.find_best_agent_by_user_query(workflow_data)
+                if routing_output.agent_id:
+                    agent = self.agent_manager.get_agent(routing_output.agent_id)
+                    
+                    if agent:
+                        routing_output.agent_response = await self._run_agent_task(routing_output.agent_id, {
+                            'task_id': routing_output.task_id,
+                            'input_data': routing_output.input_data
+                        })
+                    else:
+                        self.logger.info(f"Routing output: {routing_output}")
+                        raise LLMError(f"Routing failed: {routing_output}")
+                return routing_output
+
         except Exception as e:
             self.logger.error(f"Workflow {workflow_id} failed: {str(e)}")
             self.active_workflows[workflow_id]["status"] = "failed"
             self.active_workflows[workflow_id]["error"] = str(e)
-            raise
+            raise e
             
     async def _run_agent_task(self, agent_id: str, task_data: Dict[str, Any]):
         """Execute a task with a specific agent."""
