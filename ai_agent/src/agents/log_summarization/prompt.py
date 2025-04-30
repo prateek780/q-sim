@@ -6,7 +6,7 @@ def get_system_prompt():
         TOOLS:
         ------
         You have access to the following tools:
-        {tools} # Ensure descriptions here are clear, especially for _get_relevant_logs arguments
+        {tools}
         {tool_names}
 
         CONTEXT:

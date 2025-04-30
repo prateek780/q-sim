@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import traceback
 from typing import Dict, Any, List, Optional
 from langchain_openai import ChatOpenAI
@@ -10,23 +9,20 @@ from langchain_core.prompts import (
     SystemMessagePromptTemplate,
 )
 from langchain_core.output_parsers import PydanticOutputParser
-from langchain.tools import StructuredTool
 from langchain.agents import create_structured_chat_agent, AgentExecutor
 from langchain.callbacks import StdOutCallbackHandler, LangChainTracer
 
 import re
 
-from ai_agent.src.agents.enums import AgentTaskType
-from ai_agent.src.agents.examples import EXAMPLES
-from ai_agent.src.agents.prompt import get_system_prompt
-from ai_agent.src.agents.structures import ExtractPattersInput, LogSummaryOutput, SummarizeInput
+from ai_agent.src.agents.base.enums import AgentTaskType
+from ai_agent.src.agents.log_summarization.examples import EXAMPLES
+from ai_agent.src.agents.log_summarization.prompt import get_system_prompt
+from ai_agent.src.agents.log_summarization.structures import LogSummaryOutput, SummarizeInput
+from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.exceptions.llm_exception import LLMError
 from data.embedding.embedding_util import EmbeddingUtil
 from data.embedding.langchain_integration import SimulationLogRetriever
-from data.embedding.vector_log import VectorLogEntry
-from data.models.simulation.simulation_model import get_simulation
-from data.models.topology.world_model import get_topology_from_redis
-from .base_agent import BaseAgent, AgentTask
+from ai_agent.src.agents.base.base_agent import BaseAgent, AgentTask
 
 
 
@@ -36,24 +32,10 @@ class LogSummarizationAgent(BaseAgent):
     
     def __init__(self, llm=None):
         super().__init__(
-            agent_id="log_summarizer",
+            agent_id=AgentType.LOG_SUMMARIZER,
             description="Analyzes and summarizes system logs to extract key insights and patterns",
         )
         self.llm: ChatOpenAI = llm
-        self.tools = [
-            StructuredTool.from_function(
-                func=self._get_relevant_logs,
-                name="_get_relevant_logs",
-                description="Retrieve relevant logs for analysis",
-            ),
-            StructuredTool.from_function(
-                func=self._get_topology_by_simulation,
-                name="_get_topology_by_simulation",
-                description="Retrieves the detailed network topology configuration for a given simulation ID.",
-            ),
-        ]
-        self.redis_log = SimulationLogRetriever()
-        self.embedding_util = EmbeddingUtil()
 
     def _register_tasks(self) -> Dict[str, AgentTask]:
         """Register all tasks this agent can perform."""
@@ -66,30 +48,6 @@ class LogSummarizationAgent(BaseAgent):
                 examples=EXAMPLES,
             ),
         }
-    
-    def _get_relevant_logs(self, simulation_id: str, query: Optional[str] = '*', limit: int=100):
-        """Retrieve logs relevant to a question using vector similarity"""
-        if query == "*":
-            return VectorLogEntry.get_by_simulation(simulation_id)
-
-        # Generate embedding for query
-        query_embedding = self.embedding_util.generate_embedding(query)
-
-        # Search for relevant logs
-        return VectorLogEntry.search_similar(
-            query_embedding, top_k=limit, filters={"simulation_id": simulation_id}
-        )
-
-    def _get_topology_by_simulation(self, simulation_id: str):
-        """Retrieve the topology of a simulation using vector similarity"""
-        simulation = get_simulation(simulation_id)
-        if not simulation:
-            return None
-
-        world = get_topology_from_redis(simulation.world_id)
-        if not world:
-            return None
-        return world.model_dump()
 
     async def process_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Process a direct message to this agent."""

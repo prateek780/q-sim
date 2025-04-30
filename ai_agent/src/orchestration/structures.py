@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
-from ai_agent.src.agents.enums import AgentTaskType
+from ai_agent.src.agents.base.enums import AgentTaskType
 from ai_agent.src.consts.agent_type import AgentType
 
 

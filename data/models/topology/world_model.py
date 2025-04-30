@@ -1,5 +1,6 @@
 """World model for network simulation"""
 from typing import List, Tuple, Dict, Any, Optional, Union
+from pydantic import Field
 from redis_om import JsonModel, Field as RedisField, Migrator
 
 from data.models.connection.redis import get_redis_conn
@@ -7,9 +8,9 @@ from data.models.topology.zone_model import ZoneModal
 
 class WorldModal(JsonModel):
     """Root model representing the entire simulation world"""
-    name: str = RedisField(index=True)
-    size: Tuple[float, float]
-    zones: List[ZoneModal]
+    name: str = RedisField(index=True, description="Name of the simulation world")
+    size: Tuple[float, float] = Field(description="Size of the simulation world in (x, y) coordinates")
+    zones: List[ZoneModal] = Field(description="List of zones within the simulation world")
     
     class Meta:
         global_key_prefix = "network-sim"

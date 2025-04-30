@@ -1,4 +1,4 @@
-from ai_agent.src.agents.structures import LogSummaryOutput, SummarizeInput
+from ai_agent.src.agents.log_summarization.structures import LogSummaryOutput, SummarizeInput
 
 
 OUTPUT_EXAMPLE = {

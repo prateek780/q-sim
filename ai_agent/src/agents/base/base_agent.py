@@ -3,8 +3,14 @@ from typing import Dict, Any, List, Optional, Union
 from typing import Dict, Any, List, Optional, Union, Type
 from pydantic import BaseModel, Field
 import traceback
+from langchain.tools import StructuredTool
 
-from ai_agent.src.agents.enums import AgentTaskType
+from ai_agent.src.agents.base.enums import AgentTaskType
+from ai_agent.src.consts.agent_type import AgentType
+from data.embedding.embedding_util import EmbeddingUtil
+from data.embedding.vector_log import VectorLogEntry
+from data.models.simulation.simulation_model import get_simulation
+from data.models.topology.world_model import get_topology_from_redis
 
 class AgentInputSchema(BaseModel):
     """Base schema for agent inputs."""
@@ -36,11 +42,26 @@ class AgentTask(BaseModel):
 class BaseAgent(ABC):
     """Base class for all agents in the system."""
     
-    def __init__(self, agent_id: str, description: str):
+    def __init__(self, agent_id: AgentType, description: str):
         print(f"Agent {__class__.__name__} Initialized")
-        self.agent_id = agent_id
+        self.agent_id = agent_id.value
         self.description = description
         self.tasks = self._register_tasks()
+        
+        self.tools = [
+            StructuredTool.from_function(
+                func=self._get_relevant_logs,
+                name="_get_relevant_logs",
+                description="Retrieve relevant logs for analysis",
+            ),
+            StructuredTool.from_function(
+                func=self._get_topology_by_simulation,
+                name="_get_topology_by_simulation",
+                description="Retrieves the detailed network topology configuration for a given simulation ID.",
+            ),
+        ]
+        
+        self.embedding_util = EmbeddingUtil()
         
     @abstractmethod
     def _register_tasks(self) -> Dict[str, AgentTask]:
@@ -105,3 +126,36 @@ class BaseAgent(ABC):
             ''')
             traceback.print_exc()
             raise ValueError("Unsupported output data type")
+        
+
+    # =================== BASE TOOLS ======================
+    def _get_relevant_logs(self, simulation_id: str, query: Optional[str] = '*', limit: int=100):
+        """Retrieve logs relevant to a question using vector similarity"""
+        if query == "*":
+            return VectorLogEntry.get_by_simulation(simulation_id)
+
+        # Generate embedding for query
+        query_embedding = self.embedding_util.generate_embedding(query)
+
+        # Search for relevant logs
+        return VectorLogEntry.search_similar(
+            query_embedding, top_k=limit, filters={"simulation_id": simulation_id}
+        )
+
+    def _get_topology_by_simulation(self, simulation_id: str):
+        """Retrieve the topology of a simulation using vector similarity"""
+        simulation = get_simulation(simulation_id)
+        if not simulation:
+            return None
+
+        world = get_topology_from_redis(simulation.world_id)
+        if not world:
+            return None
+        return world.model_dump()
+
+    def _get_topology_by_world_id(self, world_id: str):
+        """Retrieve the topology of a world using vector similarity"""
+        world = get_topology_from_redis(world_id)
+        if not world:
+            return None
+        return world.model_dump()

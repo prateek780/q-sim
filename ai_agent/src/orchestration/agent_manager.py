@@ -5,7 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-from ai_agent.src.agents.base_agent import BaseAgent
+from ai_agent.src.agents.base.base_agent import BaseAgent
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.exceptions.llm_exception import LLMError
 from ai_agent.src.orchestration.prompt import PROMPT_TEMPLATE

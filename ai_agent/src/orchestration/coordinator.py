@@ -36,7 +36,7 @@ class Coordinator:
         
     def _register_core_agents(self):
         """Register the core agents required by the system."""
-        from ..agents.log_summarization_agent import LogSummarizationAgent
+        from ..agents.log_summarization.log_summarization_agent import LogSummarizationAgent
 
         self.agent_manager.register_agent(AgentType.LOG_SUMMARIZER, LogSummarizationAgent)
         
