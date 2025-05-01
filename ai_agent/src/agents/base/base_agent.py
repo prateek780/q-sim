@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 from typing import Dict, Any, List, Optional, Union
 from typing import Dict, Any, List, Optional, Union, Type
 from pydantic import BaseModel, Field
@@ -24,8 +25,8 @@ class AgentTask(BaseModel):
     """Definition of a task that an agent can perform."""
     task_id: AgentTaskType
     description: str
-    input_schema: Type[BaseModel]
-    output_schema: Type[BaseModel]
+    input_schema: Union[Type[BaseModel], Dict[str, Any]]
+    output_schema: Union[Type[BaseModel], Dict[str, Any]]
     examples: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
     def get_model_description(self) -> str:
@@ -44,6 +45,7 @@ class BaseAgent(ABC):
     
     def __init__(self, agent_id: AgentType, description: str):
         print(f"Agent {__class__.__name__} Initialized")
+        self.logger = logging.getLogger(f"Agent {__class__.__name__}")
         self.agent_id = agent_id.value
         self.description = description
         self.tasks = self._register_tasks()
@@ -59,6 +61,11 @@ class BaseAgent(ABC):
                 name="_get_topology_by_simulation",
                 description="Retrieves the detailed network topology configuration for a given simulation ID.",
             ),
+            StructuredTool.from_function(
+                func=self._get_topology_by_world_id,
+                name="_get_topology_by_world_id",
+                description="Retrieves the detailed network topology configuration for a given world ID.",
+            ),
         ]
         
         self.embedding_util = EmbeddingUtil()
@@ -73,7 +80,7 @@ class BaseAgent(ABC):
         return {
             "agent_id": self.agent_id,
             "description": self.description,
-            "tasks": "\n\n".join([f"{task.get_model_description()}" for task_id, task in self.tasks.items()])
+            "tasks": [f"{task.get_model_description()}" for task_id, task in self.tasks.items()]
         }
     
     def get_task_details(self, task_id: str) -> Optional[AgentTask]:
@@ -155,7 +162,9 @@ class BaseAgent(ABC):
 
     def _get_topology_by_world_id(self, world_id: str):
         """Retrieve the topology of a world using vector similarity"""
+        self.logger.debug(f"Retrieving topology for world {world_id}")
         world = get_topology_from_redis(world_id)
         if not world:
+            self.logger.error(f"No topology found for world {world_id}")
             return None
         return world.model_dump()

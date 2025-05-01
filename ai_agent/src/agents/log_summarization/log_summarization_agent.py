@@ -2,6 +2,7 @@ import json
 import logging
 import traceback
 from typing import Dict, Any, List, Optional
+from fastapi import HTTPException
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import (
     ChatPromptTemplate,
@@ -15,7 +16,7 @@ from langchain.callbacks import StdOutCallbackHandler, LangChainTracer
 import re
 
 from ai_agent.src.agents.base.enums import AgentTaskType
-from ai_agent.src.agents.log_summarization.examples import EXAMPLES
+from ai_agent.src.agents.log_summarization.examples import LOG_SUMMARY_EXAMPLES
 from ai_agent.src.agents.log_summarization.prompt import get_system_prompt
 from ai_agent.src.agents.log_summarization.structures import LogSummaryOutput, SummarizeInput
 from ai_agent.src.consts.agent_type import AgentType
@@ -45,7 +46,7 @@ class LogSummarizationAgent(BaseAgent):
                 description="Summarize log entries to identify key issues and patterns",
                 input_schema=SummarizeInput,
                 output_schema=LogSummaryOutput,
-                examples=EXAMPLES,
+                examples=LOG_SUMMARY_EXAMPLES,
             ),
         }
 
@@ -123,7 +124,10 @@ class LogSummarizationAgent(BaseAgent):
             answer_instructions=output_parser.get_format_instructions()
         )
 
-        if self.llm and logs and self.tools:
+        if not logs:
+            raise HTTPException(status_code=400, detail={"message": "No logs provided"})
+
+        if self.llm and self.tools:
             llm_with_tools = self.llm.bind_tools(self.tools)
             
             agent = create_structured_chat_agent(llm_with_tools, self.tools, prompt)

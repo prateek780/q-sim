@@ -1,6 +1,8 @@
 import { ChevronDown, ChevronRight, Download, FileCode, FileImage, FileJson, FileSpreadsheet, Users } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"
+import ReactJsonView from "@microlink/react-json-view"
+import NetworkVisualizer from "./temp_network_view/network_view"
 
 // File type icons for attachments
 const getFileIcon = (type: string) => {
@@ -13,6 +15,19 @@ const getFileIcon = (type: string) => {
             return <FileImage className="h-4 w-4" />
         default:
             return <FileCode className="h-4 w-4" />
+    }
+}
+
+const getAttachmentComponent = (attachment: any) => {
+    switch (attachment.type) {
+        case 'json':
+            return <ReactJsonView src={JSON.parse(attachment.preview)} theme={"tomorrow"} />
+        
+            case 'network':
+                return <NetworkVisualizer topologyStringifiedData={attachment.preview}></NetworkVisualizer>
+            
+        default:
+            <div className="text-slate-400 text-xs truncate">{attachment.preview}</div>
     }
 }
 
@@ -71,7 +86,7 @@ export function Message({ message, agents }: any) {
                                 )
                             }
                         }
-                        return <span key={index}>{part}</span>
+                        return <span key={index} dangerouslySetInnerHTML={{ __html: part }}></span>
                     })}
                 </div>
 
@@ -95,7 +110,9 @@ export function Message({ message, agents }: any) {
                                         {getFileIcon(attachment.type)}
                                         <div className="flex-1">
                                             <div className="font-medium">{attachment.name}</div>
-                                            <div className="text-slate-400 text-xs truncate">{attachment.preview}</div>
+                                            {
+                                                getAttachmentComponent(attachment)
+                                            }
                                         </div>
                                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                                             <Download className="h-3 w-3" />

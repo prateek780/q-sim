@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
+from ai_agent.src.agents.base.base_agent import AgentTask
 from ai_agent.src.agents.base.enums import AgentTaskType
 from ai_agent.src.consts.agent_type import AgentType
 
@@ -17,8 +18,11 @@ class RoutingOutput(BaseModel):
     input_data: Dict[str, Any] = Field(
         description="The original user query that was evaluated."
     )
+    # agent_description: AgentTask = Field(
+    #     description="The task that the selected agent will perform. This is a structured object with fields like 'task_id', 'description', 'input_schema', and 'output_schema'.",
+    # )
     reason: str = Field(
-        description="Explanation of why the specific agent was chosen, or why no agent was deemed suitable."
+        description="Explanation of why the specific agent was chosen, or why no agent was deemed suitable. (Addressed to user)"
     )
     suggestion: Optional[str] = Field(
         None,

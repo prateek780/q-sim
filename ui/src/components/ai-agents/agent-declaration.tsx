@@ -29,6 +29,13 @@ export enum AgentID {
     LOG_SUMMARIZER = "log_summarizer"
 }
 
+export enum AgentTask {
+LOG_SUMMARIZATION = "summarize",
+EXTRACT_PATTERNS = "extract_patterns",
+OPTIMIZE_TOPOLOGY = "optimize_topology",
+SYNTHESIZE_TOPOLOGY = "synthesize_topology"
+}
+
 export const AGENT_DEFINITION: AgentI[] = [
     {
         id: AgentID.TOPOLOGY_DESIGNER,

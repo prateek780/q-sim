@@ -1,8 +1,7 @@
-import logging
 from flask.cli import load_dotenv
-
 load_dotenv()
 
+import logging
 import os
 import traceback
 from fastapi import FastAPI
@@ -14,20 +13,22 @@ app = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        # Set Langchain env variables
-        config = load_config()
-        if config.llm.langchain_tracing:
-            os.environ["LANGSMITH_TRACING"] = 'true'
-            os.environ["LANGSMITH_API_KEY"] = config.llm.langchain_api_key.get_secret_value()
-            os.environ["LANGSMITH_ENDPOINT"] = config.llm.langsmith_endpoint
-            os.environ["LANGCHAIN_PROJECT"] = config.llm.langchain_project_name
-            print("Lifespan: Langchain environment variables set.")
-        else:
-            logging.info("Lifespan: Langchain tracing is disabled.")
-            os.environ["LANGCHAIN_TRACING_V2"] = "false"
-    except Exception as e:
-        print(f"Lifespan ERROR: Failed to set Langchain environment variables: {e}")
+    # try:
+    #     # Set Langchain env variables
+    #     config = load_config()
+    #     if config.llm.langchain_tracing:
+    #         os.environ["LANGSMITH_TRACING"] = 'true'
+    #         os.environ['LANGCHAIN_TRACING_V2'] = 'true'
+    #         os.environ["LANGSMITH_API_KEY"] = config.llm.langchain_api_key.get_secret_value()
+    #         os.environ["LANGSMITH_ENDPOINT"] = config.llm.langsmith_endpoint
+    #         os.environ["LANGCHAIN_PROJECT"] = config.llm.langchain_project_name
+    #         os.environ['OPENAI_API_KEY'] = config.llm.api_key.get_secret_value()
+    #         print("Lifespan: Langchain environment variables set.")
+    #     else:
+    #         logging.info("Lifespan: Langchain tracing is disabled.")
+    #         os.environ["LANGCHAIN_TRACING_V2"] = "false"
+    # except Exception as e:
+    #     print(f"Lifespan ERROR: Failed to set Langchain environment variables: {e}")
 
     print("Lifespan: Connecting to Redis...")
     try:

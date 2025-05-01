@@ -32,7 +32,7 @@ class AdapterModal(BaseModel):
     """Quantum adapter connecting classical and quantum networks"""
     name: str = Field(description="Name of the adapter")
     type: str = Field(description="Type of the adapter (e.g., QUMO, CNOT)")
-    size: Tuple[float, float] = Field(description="Size of the adapter in (x, y) coordinates")
+    # size: Optional[Tuple[float, float]] = Field(description="Size of the adapter in (x, y) coordinates")
     address: str = Field(description="Address of the host. This can be IP/Hostname")
     location: Tuple[float, float] = Field(description="Location of the adapter in (x, y) coordinates")
     quantumHost: str = Field(description="Address of the host where the quantum network is connected")

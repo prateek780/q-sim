@@ -39,6 +39,9 @@ class Coordinator:
         from ..agents.log_summarization.log_summarization_agent import LogSummarizationAgent
 
         self.agent_manager.register_agent(AgentType.LOG_SUMMARIZER, LogSummarizationAgent)
+
+        from ..agents.topology_agent.topology_agent import TopologyAgent
+        self.agent_manager.register_agent(AgentType.TOPOLOGY_DESIGNER, TopologyAgent)
         
     async def execute_workflow(self, workflow_id: WorkflowType, workflow_data: Dict[str, Any]):
         """Execute a multi-agent workflow."""
@@ -61,6 +64,22 @@ class Coordinator:
 
                 return result
             
+        
+            elif workflow_id == WorkflowType.TOPOLOGY_WORKFLOW:
+                agent_id = AgentType.TOPOLOGY_DESIGNER
+                task_data = workflow_data.get("task_data")
+                
+                self.logger.info(f"Executing workflow {workflow_id} with agent {agent_id}")
+                
+                # Execute the agent task
+                result = await self._run_agent_task(agent_id, task_data)
+                
+                # Update workflow status
+                self.active_workflows[workflow_id]["status"] = "completed"
+                self.active_workflows[workflow_id]["result"] = result
+
+                return result
+
             elif workflow_id == WorkflowType.ROUTING:
                 routing_output = self.agent_manager.find_best_agent_by_user_query(workflow_data)
                 if routing_output.agent_id:

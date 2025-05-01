@@ -58,7 +58,7 @@ export function importFromJSON(jsonData: ExportDataI | string, networkCanvas: fa
                             }
                         });
                     }
-                }, 1000)
+                }, 1300)
             });
         }
         //  else if (data.networks && Array.isArray(data.networks)) {

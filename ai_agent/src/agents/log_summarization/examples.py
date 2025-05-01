@@ -1,4 +1,8 @@
-from ai_agent.src.agents.log_summarization.structures import LogSummaryOutput, SummarizeInput
+from ai_agent.src.agents.log_summarization.structures import (
+    LogSummaryOutput,
+    SummarizeInput,
+)
+from ai_agent.src.agents.topology_agent.structure import SynthesisTopologyOutput, SynthesisTopologyRequest
 
 
 OUTPUT_EXAMPLE = {
@@ -78,9 +82,9 @@ OUTPUT_EXAMPLE = {
 INPUT_EXAMPLE = {"simulation_id": "01JSM8YQ4QZQZQZQZQZQZQZQZQ"}
 
 
-EXAMPLES = [
+LOG_SUMMARY_EXAMPLES = [
     {
         "input": SummarizeInput(**INPUT_EXAMPLE).model_dump_json(),
-        "output": LogSummaryOutput(**OUTPUT_EXAMPLE).model_dump_json()
+        "output": LogSummaryOutput(**OUTPUT_EXAMPLE).model_dump_json(),
     }
 ]

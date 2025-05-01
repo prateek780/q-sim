@@ -55,7 +55,7 @@ class AgentManager:
     
     def get_agents_and_capabilities(self) -> str:
         """Get a list of all agents and their capabilities."""
-        capabilities = "\n\t".join([json.dumps(self.get_agent(agent_id).get_capabilities(), indent=2) for agent_id in self.list_agents()])
+        capabilities = [json.dumps(self.get_agent(agent_id).get_capabilities(), indent=2) for agent_id in self.list_agents()]
         return capabilities
 
     def execute_agent(self, agent_id: AgentType, input_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -87,7 +87,7 @@ class AgentManager:
         try:
             routing_input = {
                 "agent_details": self.get_agents_and_capabilities(),
-                "query": user_query.model_dump_json(indent=2, exclude=['agent_id']),
+                "query": user_query.model_dump_json(indent=2, exclude=['agent_id'], exclude_none=True),
                 "format_instructions": format_instructions,
             }
             result = chain.invoke(routing_input)

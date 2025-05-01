@@ -6,8 +6,9 @@ from fastapi import HTTPException
 
 from ai_agent.src.consts.workflow_type import WorkflowType
 from ai_agent.src.orchestration.coordinator import Coordinator
-from server.api.agent.agent_request import AgentInteractionRequest, AgentRouterRequest
+from server.api.agent.agent_request import AgentRouterRequest
 from server.api.agent.summarize import handle_summary_request
+from server.api.agent.topology_agent_api import handle_topology_design
 
 
 agent_router = APIRouter(
@@ -17,7 +18,6 @@ agent_router = APIRouter(
 
 
 async def handle_routing_request(message_dict: Dict[str, Any]):
-    print(message_dict)
     message = AgentRouterRequest(**message_dict)
     agent_coordinator = Coordinator()
     response = await agent_coordinator.execute_workflow(WorkflowType.ROUTING, message)
@@ -25,7 +25,8 @@ async def handle_routing_request(message_dict: Dict[str, Any]):
 
 agent_to_handler = {
     AgentType.LOG_SUMMARIZER.value: handle_summary_request,
-    AgentType.ORCHESTRATOR.value: handle_routing_request
+    AgentType.ORCHESTRATOR.value: handle_routing_request,
+    AgentType.TOPOLOGY_DESIGNER.value: handle_topology_design
 }
 
 @agent_router.post("/message")
