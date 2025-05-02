@@ -12,9 +12,7 @@ The agent:
 4. Generates comprehensive validation rules based on the analysis
 5. Formats and saves the rules as a structured JSON schema
 
-Author: Claude 3.7 Sonnet
-Date: 2023-09-25
-"""
+
 
 import os
 import json
