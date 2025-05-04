@@ -19,17 +19,18 @@ import { importFromJSON } from "@/services/importService";
 import { NetworkAnimationController } from "./animation";
 import { networkStorage } from "@/services/storage";
 import { toast } from "sonner";
+import simulationState from "@/helpers/utils/simulationState";
 
+import { debounce } from "lodash"; // Import debounce from lodash
 
 interface NetworkCanvasProps {
   onNodeSelect: (node: any) => void
   isSimulationRunning: boolean
   simulationTime: number
   activeMessages?: any[]
-  topologyID: string| null
 }
 
-export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, simulationTime, activeMessages = [],topologyID }: NetworkCanvasProps, ref) => {
+export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, simulationTime, activeMessages = [] }: NetworkCanvasProps, ref) => {
   // const canvasRef = useRef<HTMLCanvasElement>(null)
   const { editor, onReady } = useFabricJSEditor();
   const [nodes, setNodes] = useState([]);
@@ -38,7 +39,6 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
 
   useLayoutEffect(() => {
     setTimeout(async () => {
-
       const socketHost = process.env.NODE_ENV === 'production' ? window.location.toString() : 'http://localhost:5174';
       const socketUrl = new URL(socketHost.replace("http", "ws"));
       socketUrl.pathname = "/ws";
@@ -49,23 +49,44 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
   }, [editor]);
 
   useEffect(() => {
-    setTimeout(async () => {
-      if (topologyID) {
-        try {
-          const savedTopology = await api.getTopology(topologyID);
-          if (savedTopology?.zones) {
-            importFromJSON(savedTopology, editor?.canvas as fabric.Canvas);
-            onFirstNodeAdded();
-          }
-        } catch(e) {
-          toast('Topology not found!', {onAutoClose: (t) => {
-            window.location.href = "/";
-          }})
-        }
-      }
-    });
+    debouncedCheckImport();
+  }, [editor])
 
-  }, [topologyID])
+  // For some unknown reason, two canvases are generated. So, we debounce the import check to avoid rending on unseen canvas.
+  const debouncedCheckImport = debounce(async (canvas?: fabric.Canvas) => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const lastOpenedTopologyID = queryParams.get("topologyID") || (await networkStorage.getLastOpenedTopologyID());
+
+    let topologyID = null;
+    console.log(lastOpenedTopologyID, simulationState.getWorldId());
+    if (lastOpenedTopologyID) {
+      if (lastOpenedTopologyID === simulationState.getWorldId()) {
+        return;
+      }
+      topologyID = lastOpenedTopologyID;
+    }
+
+    if (topologyID) {
+      try {
+        const savedTopology = await api.getTopology(topologyID);
+        if (savedTopology?.zones) {
+          canvas = (editor?.canvas as fabric.Canvas) || canvas;
+          if (!canvas) {
+            logger.warn("Canvas not found in editor", editor);
+            return;
+          }
+          importFromJSON(savedTopology, canvas);
+          onFirstNodeAdded();
+        }
+      } catch (e) {
+        toast("Topology not found!", {
+          onAutoClose: (t) => {
+            window.location.href = "/";
+          },
+        });
+      }
+    }
+  }, 1300);
 
   // Update canvas when simulation state changes
   useEffect(() => {
@@ -106,6 +127,8 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
 
 
     onReady(canvas);
+
+    debouncedCheckImport(canvas);
 
     canvas.on('mouse:down', (e) => {
       const selectedNode = e.target;

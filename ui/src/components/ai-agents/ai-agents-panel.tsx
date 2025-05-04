@@ -20,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AGENT_DEFINITION, AgentID, AgentTask } from "./agent-declaration"
-import { DUMMY_CHAT } from "./dummy-chat"
 import { Message } from "./message"
 import { AgentRouterRequest, ChatMessageI, ChatRequestI, LogAgentRequest, TopologyGenerationRequest, TopologyOptimizerRequest } from "./message.interface"
 import api from "@/services/api"
@@ -28,6 +27,7 @@ import { LogSummaryResponse, OrchestratorResponse, TopologyGenerationResponse, T
 import { getLogger } from "@/helpers/simLogger"
 import simulationState from "@/helpers/utils/simulationState"
 import { toast } from "sonner"
+import { uniqueId } from "lodash"
 
 // Agent types and their details
 const agentTypes = AGENT_DEFINITION;
@@ -39,6 +39,7 @@ export function AIAgentsPanel() {
     const [activeAgents, setActiveAgents] = useState(agentTypes.map((agent) => agent.id))
     const [currentTab, setCurrentTab] = useState("chat")
     const [agentInProgress, setAgentInProgress] = useState<boolean>(false);
+    const [conversationID, setConversationID] = useState<string>(uniqueId(Date.now().toString()));
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const logger = getLogger("AIAgentsPanel")
 
@@ -236,6 +237,7 @@ export function AIAgentsPanel() {
 
     const sendAgentChatMessage = async (agentId: AgentID, content: string, attachments: any[] = []) => {
         const chatRequest: ChatRequestI = {
+            conversation_id: conversationID,
             agent_id: agentId,
             user_query: content,
         };

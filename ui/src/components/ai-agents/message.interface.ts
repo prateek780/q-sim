@@ -18,6 +18,7 @@ export interface ChatMessageI {
 }
 
 export interface ChatRequestI {
+    conversation_id: string;
     agent_id: AgentID;
     task_id?: AgentTask;
     user_query: string;

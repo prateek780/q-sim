@@ -26,6 +26,8 @@ from ai_agent.src.agents.topology_agent.structure import (
 )
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.exceptions.llm_exception import LLMError
+from data.models.conversation.conversation_model import AgentExecutionStatus
+from data.models.conversation.conversation_ops import finish_agent_turn, start_agent_turn
 from data.models.topology.world_model import WorldModal
 
 
@@ -68,7 +70,7 @@ class TopologyAgent(BaseAgent):
         self, task_id: AgentTaskType, input_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         validated_input = self.validate_input(task_id, input_data)
-
+        turn = start_agent_turn(input_data['conversation_id'], self.agent_id, task_id, validated_input)
         if task_id == AgentTaskType.OPTIMIZE_TOPOLOGY:
             result = await self.update_topology(validated_input)
         elif task_id == AgentTaskType.SYNTHESIZE_TOPOLOGY:
@@ -77,7 +79,12 @@ class TopologyAgent(BaseAgent):
             raise ValueError(f"Unsupported task ID: {task_id}")
 
         # Validate output
-        return self.validate_output(task_id, result)
+        validated_output =  self.validate_output(task_id, result)
+
+        if turn:
+            finish_agent_turn(turn.pk, AgentExecutionStatus.SUCCESS, validated_output.copy())
+            validated_output['message_id'] = turn.pk
+        return validated_output
 
     async def synthesize_topology(
         self, input_data: Union[Dict[str, Any], SynthesisTopologyRequest]

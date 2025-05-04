@@ -24,7 +24,7 @@ export function importFromJSON(jsonData: ExportDataI | string, networkCanvas: fa
         }
 
         // Clear existing networks and objects
-        // networkManager.clearAll();
+        networkManager.deleteAllNetworks();
 
         let hostInfo = new Map<string, SimulatorNode>();
 

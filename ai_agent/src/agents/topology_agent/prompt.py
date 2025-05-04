@@ -77,27 +77,41 @@ You will receive instructions outlining the desired network design. Analyze thes
 ------
 
 **Your Required Workflow:**
-1.  **Analyze Requirements:** Thoroughly examine the `{user_instructions}`. Identify the network type (classical, quantum, hybrid), scale, desired components (hosts, etc.), required connections, and any constraints. Pay close attention to connectivity requirements (e.g., "connected via router", "separate networks").
-2.  **Determine Logical Networks:** Identify the distinct logical networks or subnets requested or implied by the user (e.g., "one network", "another network", different departments). If the user asks for components to be in separate networks, treat them as distinct logical networks.
-3.  **Assign Gateway Routers:** For **each distinct logical network** identified in Step 2 that needs to communicate outside itself or with other networks, you MUST create an **explicit router node** (e.g., `type: "ClassicalRouter"`) that will serve as the gateway for hosts within that network. Assign a logical name (e.g., Router-NetA, Gateway-1). Place this router node appropriately within the JSON structure (e.g., within the relevant `NetworkModal`'s `hosts` list, or potentially at the `ZoneModal` level if connecting networks across zones - adapt based on schema interpretation).
-4.  **Connect Hosts to Gateways:** For each host, determine which logical network it belongs to and create a `ConnectionModal` object linking that host to its designated network's gateway router (identified in Step 3).
-5.  **Interconnect Gateway Routers:** If multiple gateway routers were created in Step 3 (because multiple distinct logical networks were needed), you MUST determine how they should connect to enable inter-network communication. If the connection method isn't specified by the user:
-    *   If exactly **two** gateway routers were created, create a **direct `ConnectionModal` object** between these two routers.
-    *   *(Optional Refinement - Consider adding complexity later if needed)* If **more than two** gateway routers were created, consider creating an additional central 'core' router node and create connections from each gateway router to this core router. (For now, focus on the direct connection for the two-router case).
-6.  **Assign Properties & Defaults:**
-    *   Assign names (generate logical names like 'Host-1', 'Router-A', 'QLink-1' if unspecified).
-    *   Assign types, addresses (use placeholders like "192.168.X.Y" if specific ranges aren't given), locations (use defaults like `[0,0]` or attempt simple distribution if size/position available), etc., based on instructions.
-    *   **Crucially, for ALL connections created (host-to-router, router-to-router):** You MUST populate the required fields using the following **reasonable defaults** if parameters are missing in the user instructions:
-        *   `bandwidth`: 1000 (Mbps)
-        *   `latency`: 10 (ms) for host-to-router links.
-        *   `latency`: 5 (ms) for router-to-router links.
-        *   `length`: 0.1 (km)
-        *   `loss_per_km`: 0.1 (ensure consistency for classical/quantum if applicable)
-        *   `noise_model`: "default"
-        *   `name`: Generate a logical name (e.g., "Host1-RouterA_Link", "RouterA-RouterB_Link")
-    *   Assign a default `cost` (e.g., 100.0) if not inferrable.
-7.  **Populate Thought Process:** Briefly document the key decisions made during steps 1-6 in the `thought_process` field (e.g., "Identified 2 logical networks", "Created Router-A for Network-1", "Created Router-B for Network-2", "Connected Router-A and Router-B directly", "Applied default connection parameters").
-8.  **Structure Topology & Format Output:** Construct the complete network topology JSON reflecting all determined components, properties, connections, and the thought process, strictly adhering to the schema provided in `{answer_instructions}`.
+1.  Analyze Requirements: Thoroughly examine the {user_instructions}. Identify the network type (classical, quantum, hybrid), scale, desired components (hosts, routers, adapters, etc.), required connections (including hybrid links via adapters), and any constraints. Pay close attention to connectivity requirements (e.g., "connected via router", "separate networks", "link classical network X to quantum network Y").
+2.  Determine Logical Networks & Zones: Identify the distinct logical networks (classical/quantum) and zones requested or implied by the user. Create the basic ZoneModal and NetworkModal structures.
+3.  Create Hosts & Routers: Based on requirements, create the standard HostModal objects for classical hosts, quantum hosts, and classical routers. Place them within the hosts list of their respective NetworkModal. Assign logical names if needed.
+4.  Assign Gateway Routers: For each distinct classical logical network identified in Step 2 that needs external connectivity, ensure an explicit ClassicalRouter node exists (created in Step 3) to serve as its gateway. (Note: Quantum networks might connect via adapters rather than dedicated quantum routers in simpler setups).
+5.  Determine and Place Adapters: If the requirements involve hybrid connectivity (linking specific classical and quantum networks/hosts), identify precisely where QuantumAdapter nodes are needed. For each required adapter:
+    *   Create an AdapterModal object.
+    *   Assign a logical name (e.g., Adapter-1, Adapter-CNetA-QNetB).
+    *   Place the AdapterModal object within the adapters list of the appropriate ZoneModal.
+6.  Connect Hosts to Gateways (Classical): For each classical host, create a ConnectionModal object linking it to its network's designated gateway router (identified in Step 4). Do not create ConnectionModal objects for links that will be handled by an adapter.
+7.  Interconnect Gateway Routers (Classical): If multiple classical gateway routers were created and need to be connected classically, create ConnectionModal objects between them as specified (or use the direct connection logic for two routers if unspecified). Do not create ConnectionModal objects for links handled by adapters.
+8.  Assign Properties, Defaults & Adapter Connectivity:
+    *   Assign names (generate logical names like 'Host-1', 'Router-A', 'QLink-1', 'Adapter-1' if unspecified).
+    *   Assign types (e.g., 'ClassicalHost', 'ClassicalRouter', 'QuantumHost', 'QuantumAdapter') based on analysis.
+    *   Assign addresses (use placeholders like "192.168.X.Y" or simple sequential addresses if specific ranges aren't given). Adapters may use "" or null based on schema.
+    *   Assign location ([x, y]) coordinates:
+        *   Goal: Position nodes spatially within their containing zone in a way that is logical and facilitates clear visualization. Avoid placing all nodes at the same default coordinates (like [0,0]).
+        *   Method: If the node's containing ZoneModal provides position ([zone_x, zone_y]) and size ([zone_width, zone_height]), calculate the node's [x, y] coordinates so they fall within the zone's boundaries (e.g., approximately between zone_x and zone_x + zone_width for x, and zone_y and zone_y + zone_height for y).
+        *   Distribution Strategy: Distribute the nodes reasonably within this area. Try to position gateway routers somewhat centrally within their network's conceptual space inside the zone. Place hosts connected to a specific router generally closer to that router than to other routers or hosts in different logical networks. Spread out nodes belonging to the same logical network to minimize visual overlap. Aim for a sensible spatial layout rather than precise algorithmic placement.
+        *   Adapter Placement: Position QuantumAdapter nodes logically between the classical and quantum components they connect.
+        *   Fallback: If zone size/position information is unavailable or insufficient to perform the above, assign distinct, incremental default coordinates (e.g., [100, 100], [100, 200], [200, 100], [200, 200], etc.) ensuring different nodes receive different locations.
+    *   Assign Adapter Connectivity: For each AdapterModal created in Step 5:
+        *   Identify the specific classical node (classicalHost name) it should connect to based on requirements.
+        *   Identify the specific quantum node (quantumHost name) it should connect to based on requirements.
+        *   Identify the names of the corresponding classical (classicalNetwork) and quantum (quantumNetwork) networks being bridged.
+        *   Populate these four fields (classicalHost, quantumHost, classicalNetwork, quantumNetwork) within the AdapterModal object itself.
+    *   For ConnectionModal objects ONLY (created in Steps 6 & 7): Populate required fields using defaults if parameters are missing:
+        *   bandwidth: 1000 (Mbps)
+        *   latency: 10 (ms) for host-to-router, 5 (ms) for router-to-router.
+        *   length: 0.1 (km) (or estimate based on relative locations if possible, otherwise use default).
+        *   loss_per_km: 0.1 (ensure consistency for classical/quantum if applicable).
+        *   noise_model: "default".
+        *   name: Generate logical name (e.g., "Host1-RouterA_Link", "RouterA-RouterB_Link").
+    *   Assign a default cost (e.g., 100.0) if not inferrable.
+9.  Populate Thought Process: Briefly document key decisions made during steps 1-8 in the thought_process field (e.g., "Identified 1 classical, 1 quantum network", "Created Router-A for Classical", "Created Adapter-1 connecting Router-A and QHost-B", "Applied default connection parameters to Host-Router link", "Distributed node locations").
+10. Structure Topology & Format Output: Construct the complete network topology JSON reflecting all determined components, properties, ConnectionModal objects, AdapterModal objects (with their internal connectivity), and the thought process, strictly adhering to the schema provided in {answer_instructions}.
 
 RESPONSE FORMAT:
 -------

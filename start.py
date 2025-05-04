@@ -1,11 +1,9 @@
 from flask.cli import load_dotenv
 load_dotenv()
 
-import logging
 import os
 import traceback
 from fastapi import FastAPI
-from config.config import load_config
 from server.app import get_app
 from fastapi.concurrency import asynccontextmanager
 

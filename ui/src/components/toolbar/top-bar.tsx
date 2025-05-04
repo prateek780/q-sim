@@ -20,25 +20,22 @@ import { Badge } from "../ui/badge"
 import { EXERCISES } from "../labs/exercise "
 import { set } from "lodash"
 import { ExportDataI } from "@/services/export.interface"
+import simulationState from "@/helpers/utils/simulationState"
 
 interface TopBarProps {
   onStartLab?: (labId: string) => void
   completedLabs?: string[]
-  simulationState: any
+  simulationStateUpdateCount: any
   updateLabProgress: (completed: number, total: number) => void
   onOpenAIPanel?: () => void
-  activeTopologyID: string | null
-  updateActiveTopologyID: (topologyID: string) => void
 }
 
 export function TopBar({
   onStartLab = () => { },
   completedLabs = [],
-  simulationState,
+  simulationStateUpdateCount,
   updateLabProgress,
   onOpenAIPanel = () => { },
-  activeTopologyID,
-  updateActiveTopologyID
 }: TopBarProps
 ) {
   const [isLabPanelOpen, setIsLabPanelOpen] = useState(false)
@@ -65,13 +62,14 @@ export function TopBar({
 
     if (!jsonData) return;
 
+    const activeTopologyID = simulationState.getWorldId();
     if (activeTopologyID)
       jsonData.pk = activeTopologyID;
 
     const response = await api.saveTopology(jsonData);
 
     if (response?.pk) {
-      updateActiveTopologyID(response.pk);
+      simulationState.setWorldId(response.pk);
     } else {
       console.error("Failed to save topology");
     }
@@ -105,16 +103,21 @@ export function TopBar({
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
                       {
-                        savedTopologies.map((topology: ExportDataI) => (
-                          <DropdownMenuItem
-                            key={topology.pk}
-                            onClick={() => {
-                              window.location.href = `/?topologyID=${topology.pk}`;
-                            }}
-                          >
-                            {topology.name}
+                        savedTopologies.length === 0 ?
+                          <DropdownMenuItem disabled>
+                            No saved topologies found.
                           </DropdownMenuItem>
-                        ))
+                          :
+                          savedTopologies.map((topology: ExportDataI) => (
+                            <DropdownMenuItem
+                              key={topology.pk}
+                              onClick={() => {
+                                window.location.href = `/?topologyID=${topology.pk}`;
+                              }}
+                            >
+                              {topology.name}
+                            </DropdownMenuItem>
+                          ))
                       }
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
@@ -245,7 +248,7 @@ export function TopBar({
       <LabPanel
         isOpen={isLabPanelOpen}
         onClose={() => setIsLabPanelOpen(false)}
-        simulationState={simulationState}
+        simulationState={simulationStateUpdateCount}
         onStartLab={onStartLab}
         updateLabProgress={updateLabProgress}
       />

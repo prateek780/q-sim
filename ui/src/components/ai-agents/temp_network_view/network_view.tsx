@@ -1,4 +1,7 @@
+import { NetworkManager } from '@/components/node/network/networkManager';
+import { Button } from '@/components/ui/button';
 import { ExportDataI } from '@/services/export.interface';
+import { importFromJSON } from '@/services/importService';
 import React, { useEffect, useRef } from 'react';
 import { Edge, Network, Node, Options } from 'vis-network/standalone';
 import 'vis-network/styles/vis-network.css';
@@ -131,8 +134,8 @@ const NetworkVisualizer = ({ topologyStringifiedData }: NetworkVisualizerProps) 
                 enabled: false // Disable physics to keep nodes at their specified positions
             },
             interaction: {
-                dragNodes: false,
-                dragView: false,
+                dragNodes: true,
+                dragView: true,
                 zoomView: true
             }
         };
@@ -153,7 +156,18 @@ const NetworkVisualizer = ({ topologyStringifiedData }: NetworkVisualizerProps) 
         };
     }, [topologyData]);
 
+    const useThisTopology = () => {
+        importFromJSON(topologyData, NetworkManager.getInstance().canvas);
+    }
+
     return (
+        <div className="network-view-container">
+            <Button 
+                
+                onClick={() => {
+                    window.location.href = `/?topologyID=${topologyData.pk}&temp=${topologyData.temporary_world}`;
+                  }}
+            >Use this topology</Button>
         <div
             ref={networkRef as any}
             style={{
@@ -163,6 +177,7 @@ const NetworkVisualizer = ({ topologyStringifiedData }: NetworkVisualizerProps) 
                 borderRadius: '4px'
             }}
         />
+        </div>
     );
 };
 

@@ -1,6 +1,7 @@
 export interface ExportDataI {
     name: string
     pk?: string
+    temporary_world?: boolean
     size: number[]
     zones: ZoneI[]
 }
