@@ -59,7 +59,7 @@ class VectorLogEntry:
                 redis_conn.execute_command(f"FT.DROPINDEX {VECTOR_INDEX_NAME}")
                 index_exists = False
 
-            if not index_exists:
+            if not index_exists or recreate:
                 redis_conn.ft(VECTOR_INDEX_NAME).create_index(
                     schema,
                     definition=IndexDefinition(prefix=[PREFIX], language_field='language')

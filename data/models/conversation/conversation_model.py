@@ -45,18 +45,14 @@ class ChatMessage(JsonModel):
 
 class AgentTurn(JsonModel):
     """Represents an agent execution turn within a conversation."""
-    conversation_id: str = Field(index=True) # Link back to the conversation metadata
+    conversation_id: str = Field(index=True)
     timestamp: datetime = Field(index=True, default_factory=datetime.now)
     start_timestamp: datetime = Field(index=True, default_factory=datetime.now)
     agent_id: str = Field(index=True)
     task_id: Optional[str] = Field(index=True, default=None)
     status: AgentExecutionStatus = Field(index=True, default=AgentExecutionStatus.PENDING)
-
-    # Use Json type for nested dictionaries. Redis OM handles serialization.
-    # These fields themselves won't be directly indexable in Redis Search unless
-    # you define specific paths, but storing as JSON is convenient.
-    agent_input: Dict[str, Any] = Field(default={})
-    agent_output: Optional[Dict[str, Any]] = Field(default=None)
+    agent_input: Dict[str, Any] = Field(default={}, index=False)
+    agent_output: Optional[Dict[str, Any]] = Field(default=None, index=False)
 
     error_message: Optional[str] = Field(default=None)
 

@@ -1,7 +1,9 @@
-from typing import Dict, Any, List, Optional
-import asyncio
+import traceback
+from typing import Dict, Any
 import logging
 
+from ai_agent.src.agents.base.enums import AgentTaskType
+from ai_agent.src.agents.router.structure import RoutingOutput
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.consts.workflow_type import WorkflowType
 from ai_agent.src.exceptions.llm_exception import LLMError
@@ -31,8 +33,6 @@ class Coordinator:
         self.logger.info("Initializing agent system")
         # Register core agents
         self._register_core_agents()
-        # Initialize shared resources
-        # Setup communication channels, TODO: Plan this
         
     def _register_core_agents(self):
         """Register the core agents required by the system."""
@@ -42,6 +42,9 @@ class Coordinator:
 
         from ..agents.topology_agent.topology_agent import TopologyAgent
         self.agent_manager.register_agent(AgentType.TOPOLOGY_DESIGNER, TopologyAgent)
+
+        from ..agents.router.router_agent import RouterAgent
+        self.agent_manager.register_agent(AgentType.ORCHESTRATOR, RouterAgent)
         
     async def execute_workflow(self, workflow_id: WorkflowType, workflow_data: Dict[str, Any]):
         """Execute a multi-agent workflow."""
@@ -81,7 +84,15 @@ class Coordinator:
                 return result
 
             elif workflow_id == WorkflowType.ROUTING:
-                routing_output = self.agent_manager.find_best_agent_by_user_query(workflow_data)
+                routing_output = await self._run_agent_task(AgentType.ORCHESTRATOR, {
+                    'task_id': AgentTaskType.ROUTING,
+                    'input_data': {
+                        'conversation_id': workflow_data.get('conversation_id'),
+                        'user_query': workflow_data,
+                        'agent_details': self.agent_manager.get_agents_and_capabilities()
+                    }
+                })
+                routing_output = RoutingOutput(**routing_output)
                 if routing_output.agent_id:
                     agent = self.agent_manager.get_agent(routing_output.agent_id)
                     
@@ -96,7 +107,7 @@ class Coordinator:
                 return routing_output
 
         except Exception as e:
-            self.logger.error(f"Workflow {workflow_id} failed: {str(e)}")
+            self.logger.error(f"Workflow {workflow_id} failed: {str(e)}", traceback.format_exc())
             self.active_workflows[workflow_id]["status"] = "failed"
             self.active_workflows[workflow_id]["error"] = str(e)
             raise e

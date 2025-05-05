@@ -2,7 +2,10 @@ from ai_agent.src.agents.log_summarization.structures import (
     LogSummaryOutput,
     SummarizeInput,
 )
-from ai_agent.src.agents.topology_agent.structure import SynthesisTopologyOutput, SynthesisTopologyRequest
+from ai_agent.src.agents.topology_agent.structure import (
+    SynthesisTopologyOutput,
+    SynthesisTopologyRequest,
+)
 
 
 OUTPUT_EXAMPLE = {
@@ -12,6 +15,26 @@ OUTPUT_EXAMPLE = {
         "end": "2025-04-24T17:22:32.792760",
     },
     "short_summary": "The simulation involves classical data transfer from ClassicalHost-5 to ClassicalHost-1, and QKD key exchange between QuantumHost-8 and QuantumHost-3. The classical data traverses through ClassicalRouter-4 and ClassicalRouter-2, while the QKD key exchange involves QuantumAdapters connected to these routers.",
+    "key_events": [
+        {
+            "timestamp": "2025-04-24T17:22:04.549561",
+            "event_type": "info",
+            "description": "The simulation starts with the classical data transfer from ClassicalHost-5 to ClassicalRouter-4.",
+            "severity": "info"
+        },
+        {
+            "timestamp": "2025-04-24T17:22:32.792760",
+            "event_type": "info",
+            "description": "The simulation proceeds with the QKD key exchange between QuantumHost-8 and QuantumHost-3.",
+            "severity": "info"
+        },
+        {
+            "timestamp": "2025-04-24T17:22:32.792760",
+            "event_type": "info",
+            "description": "The simulation concludes with the QKD key exchange between QuantumHost-8 and QuantumHost-3.",
+            "severity": "info"
+        }
+    ],
     "detailed_summary": {
         "total_packets_transmitted": 7,
         "packets_by_source": {
@@ -79,7 +102,10 @@ OUTPUT_EXAMPLE = {
     },
 }
 
-INPUT_EXAMPLE = {"simulation_id": "01JSM8YQ4QZQZQZQZQZQZQZQZQ"}
+INPUT_EXAMPLE = {
+    "simulation_id": "01JSM8YQ4QZQZQZQZQZQZQZQZQ",
+    "conversation_id": "1231232",
+}
 
 
 LOG_SUMMARY_EXAMPLES = [

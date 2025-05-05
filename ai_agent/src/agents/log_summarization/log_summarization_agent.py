@@ -11,7 +11,6 @@ from langchain_core.prompts import (
 )
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.agents import create_structured_chat_agent, AgentExecutor
-from langchain.callbacks import StdOutCallbackHandler, LangChainTracer
 
 import re
 
@@ -97,15 +96,15 @@ class LogSummarizationAgent(BaseAgent):
         """Summarize log entries."""
         simulation_id = input_data.get("simulation_id")
         if simulation_id:
-            logs = self._get_relevant_logs(simulation_id, "*", 5)
+            logs = self._get_relevant_logs(simulation_id, "*")
         else:
             logs = input_data.get("logs", [])
-        max_entries = input_data.get("max_entries", 100)
+
+        if not logs:
+            raise HTTPException(status_code=400, detail={"message": "No logs provided", 'simulation_id': simulation_id})
+
         focus_components = input_data.get("focus_components")
         user_query = input_data.get("message")
-
-        # Process a limited number of entries
-        logs = logs[:max_entries]
 
         output_parser = PydanticOutputParser(pydantic_object=LogSummaryOutput)
 
@@ -123,9 +122,6 @@ class LogSummarizationAgent(BaseAgent):
         prompt = prompt.partial(
             answer_instructions=output_parser.get_format_instructions()
         )
-
-        if not logs:
-            raise HTTPException(status_code=400, detail={"message": "No logs provided"})
 
         if self.llm and self.tools:
             llm_with_tools = self.llm.bind_tools(self.tools)

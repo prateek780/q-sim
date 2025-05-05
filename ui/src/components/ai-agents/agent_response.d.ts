@@ -8,8 +8,17 @@ export interface LogSummaryResponse extends AgentResponse {
     simulation_id: string
     summary_period: SummaryPeriod
     short_summary: string
+    key_events: KeyLogEvent[]
     detailed_summary: DetailedSummary
 }
+
+export interface KeyLogEvent {
+  timestamp: string
+  event_type: string
+  description: string
+  severity: "info" | "warning" | "error" | "success"
+}
+
 
 export interface SummaryPeriod {
     start: string
