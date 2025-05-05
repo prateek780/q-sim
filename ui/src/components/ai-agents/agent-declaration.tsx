@@ -3,6 +3,7 @@ import {
     AlertTriangle,
     BarChart2,
     Cpu,
+    Book
 } from "lucide-react"
 import { JSX } from "react/jsx-runtime";
 
@@ -20,11 +21,19 @@ interface AgentI {
 }
 
 export enum AgentID {
-    TOPOLOGY_DESIGNER = "topology-designer",
-    CONGESTION_MONITOR = "congestion-monitor",
-    PERFORMANCE_ANALYZER = "performance-analyzer",
-    COMPOUND_AI_ARCHITECT = "compound-ai-architect",
+    TOPOLOGY_DESIGNER = "topology_designer",
+    CONGESTION_MONITOR = "congestion_monitor",
+    PERFORMANCE_ANALYZER = "performance_analyzer",
+    COMPOUND_AI_ARCHITECT = "compound_ai_architect",
     ORCHESTRATOR = "orchestrator",
+    LOG_SUMMARIZER = "log_summarizer"
+}
+
+export enum AgentTask {
+LOG_SUMMARIZATION = "summarize",
+EXTRACT_PATTERNS = "extract_patterns",
+OPTIMIZE_TOPOLOGY = "optimize_topology",
+SYNTHESIZE_TOPOLOGY = "synthesize_topology"
 }
 
 export const AGENT_DEFINITION: AgentI[] = [
@@ -46,21 +55,21 @@ export const AGENT_DEFINITION: AgentI[] = [
             "Congestion prediction heatmap (PNG)",
         ],
     },
-    {
-        id: AgentID.CONGESTION_MONITOR,
-        name: "Congestion Monitor",
-        description: "Detects decoherence and congestion in Q networks in real-time",
-        icon: <AlertTriangle className="h-5 w-5" />,
-        color: "bg-amber-500",
-        textColor: "text-amber-500",
-        borderColor: "border-amber-500",
-        type: "passive",
-        inputs: ["Real-time FLIT transmission data (stream)", "Q network state snapshot (binary)"],
-        outputs: [
-            "Congestion alerts (JSON): timestamp, location, severity",
-            "Interactive network visualization (HTML/PNG)",
-        ],
-    },
+    // {
+    //     id: AgentID.CONGESTION_MONITOR,
+    //     name: "Congestion Monitor",
+    //     description: "Detects decoherence and congestion in Q networks in real-time",
+    //     icon: <AlertTriangle className="h-5 w-5" />,
+    //     color: "bg-amber-500",
+    //     textColor: "text-amber-500",
+    //     borderColor: "border-amber-500",
+    //     type: "passive",
+    //     inputs: ["Real-time FLIT transmission data (stream)", "Q network state snapshot (binary)"],
+    //     outputs: [
+    //         "Congestion alerts (JSON): timestamp, location, severity",
+    //         "Interactive network visualization (HTML/PNG)",
+    //     ],
+    // },
     {
         id: AgentID.PERFORMANCE_ANALYZER,
         name: "Performance Analyzer",
@@ -90,6 +99,21 @@ export const AGENT_DEFINITION: AgentI[] = [
         outputs: [
             "Multi-agent deployment plan (JSON): agents used and resulting topology with explanations",
             "FLIT traffic forecast report (CSV): predicted communication pattern",
+        ],
+    },
+    {
+        id: AgentID.LOG_SUMMARIZER,
+        name: "Log Summarizer",
+        description: "Aggregates and summarizes network logs for quick analysis and reporting",
+        icon: <Book className="h-5 w-5" />,
+        color: "bg-gray-500",
+        textColor: "text-gray-500",
+        borderColor: "border-gray-500",
+        type: "passive",
+        inputs: ["Raw network logs (JSON/CSV): detailed event data"],
+        outputs: [
+            "Summary report (HTML): key metrics and anomalies",
+            "Aggregated log data (JSON): structured and filtered logs",
         ],
     },
 ];

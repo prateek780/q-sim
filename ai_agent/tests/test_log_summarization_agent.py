@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.config import load_config
-from src.agents.log_summarization_agent import LogSummarizationAgent
+from src.agents.log_summarization.log_summarization_agent import LogSummarizationAgent
 from langchain_openai import ChatOpenAI
 
 # Sample test data

@@ -61,16 +61,7 @@ class SimulationManager:
             return False
 
         try:
-            # Set simulation state
             self.is_running = True
-            # self.simulation_data = {
-            #     "network_id": network.pk,
-            #     "network_config": network.model_dump(),
-            #     "progress": 0,
-            #     "status": "running",
-            #     "results": None,
-            #     "error": None,
-            # }
             self.simulation_data = SimulationModal(
                 world_id=network.pk,
                 name=network.name,
@@ -94,7 +85,7 @@ class SimulationManager:
             # Start the simulation process
             self._run_simulation(network)
 
-            return True
+            return self.simulation_data
 
         except Exception as e:
             self.emit_event(

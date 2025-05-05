@@ -63,17 +63,17 @@ class SimulationLogRetriever:
             raise ValueError(f"Unsupported embedding provider: {embedding_provider}")
 
         # Ensure vector index exists
-        VectorLogEntry.create_index(self.redis_conn)
+        VectorLogEntry.create_index(self.redis_conn, True)
 
         # Initialize vector store
-        self.vector_store = RedisVectorStore(
-            config=RedisConfig(
-                redis_client=self.redis_conn,
-                index_name="logs_vector_idx",
-                key_prefix=f"simlog:vector:",
-            ),
-            embedding=self.embeddings,
-        )
+        # self.vector_store = RedisVectorStore(
+        #     config=RedisConfig(
+        #         redis_client=self.redis_conn,
+        #         index_name="logs_vector_idx",
+        #         key_prefix=f"simlog:vector:",
+        #     ),
+        #     embeddings=self.embeddings,
+        # )
 
     def _log_to_document(self, log: Dict[str, Any]) -> LangchainDocument:
         """Convert a log entry to a LangChain Document"""

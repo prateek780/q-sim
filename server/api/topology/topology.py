@@ -13,7 +13,7 @@ from data.models.topology.world_model import (
     update_world_in_redis,
 )  # For type hinting the request body
 
-# Replace Blueprint with APIRouter
+
 topology_router = APIRouter(
     prefix="/topology",  # Matches url_prefix
     tags=["Topology"],  # Optional: For grouping in API docs

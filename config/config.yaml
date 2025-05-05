@@ -1,13 +1,18 @@
 # llm_config.yaml
 llm:
   provider: "openai"
-  model: "models/gemini-2.0-flash"
+  model: "gemini-2.5-pro-exp-03-25"
   api_key: "${OPENAI_API_KEY}"
   base_url: "https://generativelanguage.googleapis.com/v1beta/openai/"
   timeout: 60
   temperature: 0.2
   max_tokens: 1000
   retry_attempts: 3
+
+  # LangChain Config
+  langchain_api_key: "${LANGCHAIN_API_KEY}"
+  langchain_project_name: "simulator_agent_dev"
+  langchain_tracing: true
   
 logging:
   level: "INFO"

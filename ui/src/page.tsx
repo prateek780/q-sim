@@ -18,16 +18,17 @@ import { EXERCISES } from "./components/labs/exercise "
 import { ConnectionManager } from "./components/node/connections/connectionManager"
 import { AIAgentsModal } from "./components/ai-agents/ai-agents-modal"
 import { networkStorage } from "./services/storage"
+import simulationState from "./helpers/utils/simulationState"
 
 export default function QuantumNetworkSimulator() {
   const [selectedNode, setSelectedNode] = useState(null)
   const [isSimulationRunning, setIsSimulationRunning] = useState(false)
   const [simulationSpeed, setSimulationSpeed] = useState(1)
   const [currentTime, setCurrentTime] = useState(0)
-  const [simulationState, setSimulationState] = useState(0)
+  const [simulationStateUpdateCount, setSimulationStateUpdateCount] = useState(0)
   const [activeLabObject, setActiveLabObject] = useState<ExerciseI | null>(null)
   const [activeMessages, setActiveMessages] = useState<{ id: string; source: string; target: string; content: any; protocol: string; startTime: number; duration: number }[]>([])
-  const [activeTopologyID, setActiveTopologyID] = useState<string | null>(null)
+  // const [activeTopologyID, setActiveTopologyID] = useState<string | null>(null)
 
   // Lab-related state
   const [activeLab, setActiveLab] = useState<string | null>(null)
@@ -40,16 +41,16 @@ export default function QuantumNetworkSimulator() {
   // Reference to the NetworkCanvas component
   const networkCanvasRef = useRef(null)
 
-  useEffect(() => {
-    setTimeout(async () => {
-      const queryParams = new URLSearchParams(window.location.search);
-      const lastOpenedTopologyID = queryParams.get("topologyID") || await networkStorage.getLastOpenedTopologyID();
+  // useEffect(() => {
+  //   setTimeout(async () => {
+  //     const queryParams = new URLSearchParams(window.location.search);
+  //     const lastOpenedTopologyID = queryParams.get("topologyID") || await networkStorage.getLastOpenedTopologyID();
 
-      if (lastOpenedTopologyID) {
-        setActiveTopologyID(lastOpenedTopologyID);
-      }
-    })
-  })
+  //     if (lastOpenedTopologyID) {
+  //       simulationState.setWorldId(lastOpenedTopologyID);
+  //     }
+  //   })
+  // })
 
   useEffect(() => {
     setTimeout(() => {
@@ -97,8 +98,7 @@ export default function QuantumNetworkSimulator() {
     setActiveLab((currentActiveLab) => {
       if (!currentActiveLab) return currentActiveLab;
 
-      setSimulationState((prev) => prev + 1);
-      console.log("Simulation state updated:", simulationState);
+      setSimulationStateUpdateCount((prev) => prev + 1);
 
       return currentActiveLab;
     });
@@ -164,6 +164,7 @@ export default function QuantumNetworkSimulator() {
       if (!api.stopSimulation())
         return
     } else {
+      const activeTopologyID = simulationState.getWorldId();
       if (!activeTopologyID) {
         toast.error("Please save your topology before starting the simulation.");
         return;
@@ -221,13 +222,11 @@ export default function QuantumNetworkSimulator() {
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Navigation Bar */}
         <TopBar
-          simulationState={simulationState}
+          simulationStateUpdateCount={simulationStateUpdateCount}
           onStartLab={handleStartLab}
           completedLabs={completedLabs}
           updateLabProgress={handleLabProgressUpdate}
           onOpenAIPanel={() => setIsAIPanelOpen(true)}
-          activeTopologyID={activeTopologyID}
-          updateActiveTopologyID={setActiveTopologyID}
         />
 
         {/* Main Workspace */}
@@ -242,7 +241,6 @@ export default function QuantumNetworkSimulator() {
               isSimulationRunning={isSimulationRunning}
               simulationTime={currentTime}
               activeMessages={activeMessages}
-              topologyID={activeTopologyID}
             />
 
             {/* Active Lab Indicator */}

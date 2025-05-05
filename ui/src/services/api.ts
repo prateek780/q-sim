@@ -4,6 +4,9 @@ import { getLogger } from "@/helpers/simLogger";
 import { exportToJSON } from "./exportService";
 import { ServerSimulationStatus } from "./api.interface";
 import { ExportDataI } from "./export.interface";
+import { ChatRequestI } from "@/components/ai-agents/message.interface";
+import simulationState from "@/helpers/utils/simulationState";
+import { StartSimulationResponse } from "./apiResponse.interface";
 
 // Blank for current host
 const SERVER_HOST = '/api'
@@ -58,13 +61,6 @@ const api = {
     saveTopology: async(topology:ExportDataI | undefined): Promise<ExportDataI | undefined> => {
         try {
             const body = JSON.stringify(topology);
-            // const response = await fetch(SERVER_HOST + `/topology/`, {
-            //     method: 'PUT',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body,
-            // });
             let path =  `/topology/`;
 
             if(topology?.pk) {
@@ -76,7 +72,10 @@ const api = {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            return await response.json();
+            const responseJson = await response.json();
+            simulationState.setWorldId(responseJson.worldId);
+
+            return responseJson;
         } catch (error) {
             console.error('Failed to update data:', error);
         }
@@ -87,6 +86,7 @@ const api = {
             throw new Error('Error in fetching topology')
         }
         try {
+            simulationState.setWorldId(topologyID);
             return await response.json() as ExportDataI
         } catch (e) {
             return null
@@ -110,9 +110,14 @@ const api = {
 
         const response = await makeFetchCall(SERVER_HOST + `/simulation/` + topologyID, 'POST')
         if (response.status === 201) {
+            const responseJson = await response.json() as StartSimulationResponse;
+            simulationState.setSimulationID(responseJson.pk);
+            simulationState.setSimulationRunning(true);
             return true
         }
 
+        simulationState.setSimulationID(null);
+        simulationState.setSimulationRunning(false);
         return false
     },
     stopSimulation: async () => {
@@ -134,6 +139,15 @@ const api = {
         const response = await makeFetchCall(SERVER_HOST + `/simulation/status/`);
 
         return (await response.json()) as ServerSimulationStatus;
+    },
+    sendAgentMessage: async (message: ChatRequestI) => {
+        const response = await makeFetchCall(SERVER_HOST + `/agent/message`, 'POST', message);
+
+        if (!response.ok) {
+            throw new Error(`Failed to send agent message: ${response.statusText}`);
+        }
+
+        return await response.json();
     }
 };
 

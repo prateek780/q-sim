@@ -1,5 +1,6 @@
 """World model for network simulation"""
 from typing import List, Tuple, Dict, Any, Optional, Union
+from pydantic import Field
 from redis_om import JsonModel, Field as RedisField, Migrator
 
 from data.models.connection.redis import get_redis_conn
@@ -7,9 +8,10 @@ from data.models.topology.zone_model import ZoneModal
 
 class WorldModal(JsonModel):
     """Root model representing the entire simulation world"""
-    name: str = RedisField(index=True)
-    size: Tuple[float, float]
-    zones: List[ZoneModal]
+    name: str = RedisField(index=True, description="Name of the simulation world")
+    size: Tuple[float, float] = Field(description="Size of the simulation world in (x, y) coordinates")
+    zones: List[ZoneModal] = Field(description="List of zones within the simulation world")
+    temporary_world: bool = RedisField(default=False, description="Flag to indicate if the world is temporary")
     
     class Meta:
         global_key_prefix = "network-sim"
@@ -70,12 +72,12 @@ def get_topology_from_redis(primary_key: str) -> Optional[WorldModal]:
         print(f"Error retrieving world data: {e}")
         return None
 
-def get_all_topologies_from_redis() -> List[WorldModal]:
+def get_all_topologies_from_redis(temporary_world=False) -> List[WorldModal]:
     """Retrieve all worlds from Redis"""
     # Ensure we have a connection
     get_redis_conn()
-    
-    return WorldModal.find().all()
+
+    return WorldModal.find(WorldModal.temporary_world==temporary_world).all()
 
 def delete_topology_from_redis(primary_key: str) -> bool:
     """Delete world data from Redis by primary key"""

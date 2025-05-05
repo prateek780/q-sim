@@ -1,10 +1,13 @@
 """Vector log model for storing embedded logs in Redis"""
 
 import json
+import logging
+import traceback
 import numpy as np
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from redis.commands.search.query import Query
+from redis.commands.search.indexDefinition import IndexDefinition
 from redis.commands.search.field import VectorField, TextField, NumericField, TagField
 
 from core.enums import NodeType
@@ -12,16 +15,17 @@ from data.models.connection.redis import get_redis_conn
 from data.models.simulation.log_model import LogEntryModel, LogLevel
 
 # Constants for vector indexing
-VECTOR_DIM = 1536  # Dimension for embedding vectors (e.g., OpenAI ada-002)
+VECTOR_DIM =768  # Dimension for embedding vectors (e.g., OpenAI ada-002)
 VECTOR_INDEX_NAME = "logs_vector_idx"
 PREFIX = "simlog:vector:"
 
 
 class VectorLogEntry:
     """Model for vector-embedded log entries"""
-
+    logger = logging.getLogger(__name__)
+    
     @staticmethod
-    def create_index(redis_conn=None):
+    def create_index(redis_conn=None, recreate=False):
         """Create Redis search index for vector similarity search"""
         if redis_conn is None:
             redis_conn = get_redis_conn()
@@ -34,11 +38,9 @@ class VectorLogEntry:
                 "HNSW",
                 {"TYPE": "FLOAT32", "DIM": VECTOR_DIM, "DISTANCE_METRIC": "COSINE"},
             ),
-            # Text fields for searching
-            TextField("message"),
             TextField("component"),
             # Numeric fields for filtering
-            NumericField("timestamp"),
+            NumericField("timestamp", sortable=True),
             # Tag fields for exact match filtering
             TagField("simulation_id"),
             TagField("level"),
@@ -49,10 +51,18 @@ class VectorLogEntry:
         try:
             # Check if index exists and create if it doesn't
             indices = redis_conn.execute_command("FT._LIST")
-            if VECTOR_INDEX_NAME.encode() not in indices:
+            index_exists = VECTOR_INDEX_NAME in indices
+                
+            # Drop if requested and exists
+            if recreate and index_exists:
+                print("Dropping Index")
+                redis_conn.execute_command(f"FT.DROPINDEX {VECTOR_INDEX_NAME}")
+                index_exists = False
+
+            if not index_exists:
                 redis_conn.ft(VECTOR_INDEX_NAME).create_index(
                     schema,
-                    definition={"prefix": [PREFIX], "language_field": "language"},
+                    definition=IndexDefinition(prefix=[PREFIX], language_field='language')
                 )
                 print(f"Created index {VECTOR_INDEX_NAME}")
         except Exception as e:
@@ -127,7 +137,7 @@ class VectorLogEntry:
         query_embedding_np = np.array(query_embedding, dtype=np.float32)
 
         # Build query
-        base_query = f"*=>[KNN {top_k} @embedding $embedding AS score]"
+        base_query = f"=>[KNN {top_k} @embedding $embedding AS score]"
 
         # Apply filters if provided
         if filters:
@@ -165,8 +175,8 @@ class VectorLogEntry:
 
             # Combine all filters
             if filter_parts:
-                base_query = f"({' '.join(filter_parts)}) {base_query}"
-
+                base_query = f"{' '.join(filter_parts)} {base_query}"
+        print(base_query)
         query = Query(base_query).dialect(2)
         params_dict = {"embedding": query_embedding_np.tobytes()}
 
@@ -212,10 +222,8 @@ class VectorLogEntry:
         # Build query for exact match on simulation_id
         query_str = f"@simulation_id:{{{simulation_id}}}"
         query = Query(query_str).sort_by("timestamp", asc=False).paging(0, limit)
-
         try:
             results = redis_conn.ft(VECTOR_INDEX_NAME).search(query)
-
             # Process and return results
             processed_results = []
             for doc in results.docs:
@@ -225,9 +233,9 @@ class VectorLogEntry:
 
                 # Convert timestamp back to datetime
                 if "timestamp" in result and result["timestamp"]:
-                    result["timestamp"] = datetime.fromtimestamp(
+                    result["timestamp"] = str(datetime.fromtimestamp(
                         float(result["timestamp"])
-                    )
+                    ))
 
                 # Parse details if available
                 if "details" in result and result["details"]:
@@ -244,5 +252,5 @@ class VectorLogEntry:
 
             return processed_results
         except Exception as e:
-            print(f"Error getting simulation vector logs: {e}")
+            VectorLogEntry.logger.exception("Error getting simulation vector logs")
             return []

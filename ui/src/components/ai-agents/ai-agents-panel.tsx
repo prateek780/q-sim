@@ -12,30 +12,36 @@ import {
     RefreshCw,
     Download,
     Info,
+    Loader2,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { AGENT_DEFINITION, AgentID } from "./agent-declaration"
-import { DUMMY_CHAT } from "./dummy-chat"
+import { AGENT_DEFINITION, AgentID, AgentTask } from "./agent-declaration"
 import { Message } from "./message"
-import { ChatMessageI } from "./message.interface"
+import { AgentRouterRequest, ChatMessageI, ChatRequestI, LogAgentRequest, TopologyGenerationRequest, TopologyOptimizerRequest } from "./message.interface"
+import api from "@/services/api"
+import { LogSummaryResponse, OrchestratorResponse, TopologyGenerationResponse, TopologyOptimizerResponse } from "./agent_response"
+import { getLogger } from "@/helpers/simLogger"
+import simulationState from "@/helpers/utils/simulationState"
+import { toast } from "sonner"
+import { uniqueId } from "lodash"
 
 // Agent types and their details
 const agentTypes = AGENT_DEFINITION;
 
-// Sample conversation history for demo purposes, will be handled by state eventually.
-const initialConversation = DUMMY_CHAT;
-
 // Unified agent chat component
 export function AIAgentsPanel() {
-    const [messages, setMessages] = useState<ChatMessageI[]>(initialConversation)
+    const [messages, setMessages] = useState<ChatMessageI[]>([])
     const [inputValue, setInputValue] = useState("")
     const [activeAgents, setActiveAgents] = useState(agentTypes.map((agent) => agent.id))
     const [currentTab, setCurrentTab] = useState("chat")
+    const [agentInProgress, setAgentInProgress] = useState<boolean>(false);
+    const [conversationID, setConversationID] = useState<string>(uniqueId(Date.now().toString()));
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const logger = getLogger("AIAgentsPanel")
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -54,36 +60,78 @@ export function AIAgentsPanel() {
     }
 
     // Extract @mentions from message
-    const extractMention = (message: string): AgentID | null => {
-        const mentionRegex = /@([A-Za-z\s-]+)/
-        const match = message.match(mentionRegex)
+    const extractMention = (message: string): { mentionedAgentId: AgentID, cleanMessage: string } => {
+        // Create a regex pattern dynamically from agent names
+        const agentNames = agentTypes.map(a => a.name.replace(/[-\s]/g, '[-\\s]+')).join('|');
+        const mentionRegex = new RegExp(`@(${agentNames})\\b`, 'i');
+
+        const match = message.match(mentionRegex);
 
         if (match) {
-            const mentionedName = match[1].trim()
-            const mentionedAgent = agentTypes.find((a) => a.name.toLowerCase() === mentionedName.toLowerCase())
-            return mentionedAgent ? mentionedAgent.id : null
+            const mentionedName = match[1].trim();
+            const mentionedAgent = agentTypes.find(a =>
+                a.name.toLowerCase() === mentionedName.toLowerCase());
+
+            // Remove the mention part from the message
+            const cleanMessage = message.replace(match[0], '').trim();
+            if (mentionedAgent) {
+                return {
+                    mentionedAgentId: mentionedAgent.id,
+                    cleanMessage
+                };
+            }
         }
 
-        return null
+        return {
+            mentionedAgentId: AgentID.ORCHESTRATOR,
+            cleanMessage: message
+        };
     }
 
-    const handleTopologyDesignerMessage = (message: string) => {
-        const responseContent =
-            "I've analyzed the network topology and created an optimized design that reduces potential congestion points by 35%. The new topology maintains all required connectivity while improving path diversity."
-        const attachments = [
-            {
-                type: "json",
-                name: "optimized_topology.json",
-                preview: '{"nodes": 8, "connections": 12, "congestion_reduction": "35%"}',
-            },
-            {
-                type: "image",
-                name: "topology_visualization.png",
-                preview: "Visual representation of the optimized network topology",
-            },
-        ]
+    const handleTopologyGenerationResponse = (message: TopologyGenerationResponse): ChatMessageI => {
+        return {
+            id: (messages.length + 1).toString(),
+            timestamp: new Date().toISOString(),
+            agentId: AgentID.TOPOLOGY_DESIGNER,
+            role: 'agent',
+            content: message.overall_feedback,
+            attachments: [
+                {
+                    type: 'network',
+                    name: 'generated_topology.json',
+                    preview: JSON.stringify(message.generated_topology)
+                }
+            ]
+        }
+    }
 
-        return { responseContent, attachments }
+    const handleTopologyDesignerMessage = (message: TopologyOptimizerResponse): ChatMessageI => {
+
+        let content = message.overall_feedback;
+
+        if (message.optimization_steps) {
+            content += `<br><br>Optimization Steps:<br>`;
+
+            message.optimization_steps.forEach((step, index) => {
+                content += `<br>    Step ${index + 1}: "${step.change_path}" updated to <b>"${step.change}"</b> because <b>"${step.reason}"</b>`;
+            });
+
+        }
+        return {
+            content,
+            attachments: [
+                {
+                    type: "network",
+                    name: "optimized_topology.json",
+                    preview: JSON.stringify(message.optimized_topology),
+                },
+            ],
+            id: (messages.length + 1).toString(),
+            timestamp: new Date().toISOString(),
+            agentId: AgentID.TOPOLOGY_DESIGNER,
+            role: 'agent'
+        }
+
     }
 
     const handleCongestionMonitorMessage = (message: string) => {
@@ -128,66 +176,136 @@ export function AIAgentsPanel() {
         return { responseContent, attachments }
     }
 
-    // Handle sending a message
-    const handleSendMessage = () => {
-        if (!inputValue.trim()) return
+    const handleOrchestratorResponse = (message: OrchestratorResponse): ChatMessageI | null => {
+        if (!message.agent_id) {
+            // Could not find relevant agent
+            return {
+                content: message.suggestion,
+                role: 'agent',
+                id: (messages.length + 1).toString(),
+                timestamp: new Date().toISOString(),
+                agentId: AgentID.ORCHESTRATOR,
+            }
+        } else if (message.agent_response) {
+            handleReceivedMessage(message.agent_id as AgentID, message.agent_response, message.task_id as AgentTask)
+        } else {
+            logger.error("Orchestrator response does not contain agent response")
+        }
+        return null
 
-        // Extract mentioned agent
-        const mentionedAgentId = extractMention(inputValue);
+    }
 
-        if (!mentionedAgentId) {
-            console.log('Orchestrator agent will handle the message in future. WIP!');
+    const handleLogSummarizerMessage = (message: LogSummaryResponse): ChatMessageI => {
+        const responseContent = message.short_summary;
+        return {
+            content: responseContent,
+            role: 'agent',
+            id: (messages.length + 1).toString(),
+            timestamp: new Date().toISOString(),
+            agentId: AgentID.LOG_SUMMARIZER,
+        }
+    }
+
+    const handleReceivedMessage = async (agentId: AgentID, response: any, task?: AgentTask | null) => {
+        var responseMessage: ChatMessageI | null = null;
+        switch (agentId) {
+            case AgentID.LOG_SUMMARIZER:
+                responseMessage = handleLogSummarizerMessage(response);
+                break;
+
+            case AgentID.ORCHESTRATOR:
+                responseMessage = handleOrchestratorResponse(response);
+                break;
+
+            case AgentID.TOPOLOGY_DESIGNER:
+                if (task === AgentTask.SYNTHESIZE_TOPOLOGY) {
+                    responseMessage = handleTopologyGenerationResponse(response);
+                } else {
+                    responseMessage = handleTopologyDesignerMessage(response);
+                }
+                break;
+
+            default:
+                console.log("Unknown agent ID:", agentId);
+                break;
+        }
+
+        if (responseMessage) {
+            setMessages([...messages, responseMessage]);
+        }
+    }
+
+    const sendAgentChatMessage = async (agentId: AgentID, content: string, attachments: any[] = []) => {
+        const chatRequest: ChatRequestI = {
+            conversation_id: conversationID,
+            agent_id: agentId,
+            user_query: content,
+        };
+
+        const {agentRequest, agentTask} = validateAndUpdateMentionAgentRequirements(agentId, chatRequest)
+
+        if (!agentRequest) {
             return;
         }
 
-        const newMessage: ChatMessageI = {
-            id: `user-${Date.now()}`,
-            role: "user",
-            content: inputValue,
-            timestamp: new Date().toLocaleTimeString(),
-            mentionedAgent: mentionedAgentId,
-        }
+        if (agentTask) 
+            agentRequest.task_id = agentTask;
 
-        setMessages([...messages, newMessage])
-        setInputValue("")
+        const response = await api.sendAgentMessage(agentRequest)
 
-        // Generate agent response if an agent was mentioned
-        if (mentionedAgentId && activeAgents.includes(mentionedAgentId)) {
-            setTimeout(() => {
-                const agent = agentTypes.find((a) => a.id === mentionedAgentId);
-                if (!agent) return;
+        await handleReceivedMessage(agentId, response, agentTask);
+    };
 
-                // Generate a simulated response based on the agent type
-                let responseContent = ""
-                let attachments: any = []
+    const validateAndUpdateMentionAgentRequirements = (mentionedAgent: AgentID, chatRequest: ChatRequestI): { agentRequest: ChatRequestI | null, agentTask: AgentTask | null } => {
+        switch (mentionedAgent) {
+            case AgentID.LOG_SUMMARIZER:
+                const simulationID = simulationState.getSimulationID();
+                if (!simulationID) {
+                    toast.error("Run a simulation before using the log summarizer")
+                    return { agentRequest: null, agentTask: null }
+                };
+                const logRequest = chatRequest as LogAgentRequest;
+                logRequest.simulation_id = simulationID
+                return { agentRequest: logRequest, agentTask: AgentTask.LOG_SUMMARIZATION }
 
-                const agentHandlers: Record<string, (message: string) => { responseContent: string; attachments: any[] }> = {
-                    "topology-designer": handleTopologyDesignerMessage,
-                    "congestion-monitor": handleCongestionMonitorMessage,
-                    "performance-analyzer": handlePerformanceAnalyzerMessage,
-                    "compound-ai-architect": handleCompoundAIArchitectMessage,
-                }
+            case AgentID.TOPOLOGY_DESIGNER:
+                const topologyGenRequest = chatRequest as TopologyGenerationRequest;
+                return { agentRequest: topologyGenRequest, agentTask: AgentTask.SYNTHESIZE_TOPOLOGY }
 
-                if (mentionedAgentId && agentHandlers[mentionedAgentId]) {
-                    const result = agentHandlers[mentionedAgentId](inputValue);
-                    responseContent = result.responseContent;
-                    attachments = result.attachments;
-                } else {
-                    // TODO: Default message will be handled by orchestrator agent.
-                    responseContent = "I'm not sure how to respond to that. Please provide more specific instructions.";
-                }
+            case AgentID.ORCHESTRATOR:
+                const routerRequest = chatRequest as AgentRouterRequest;
+                
+                routerRequest.extra_kwargs = {};
+                if(simulationState.getSimulationID())
+                routerRequest.extra_kwargs['simulation_id'] =  simulationState.getSimulationID()
 
-                const responseMessage: ChatMessageI = {
-                    id: `agent-${Date.now()}`,
-                    role: "agent",
-                    agentId: mentionedAgentId,
-                    content: responseContent,
-                    timestamp: new Date().toLocaleTimeString(),
-                    attachments: attachments,
-                }
+                if(simulationState.getWorldId())
+                    routerRequest.extra_kwargs['world_id'] = simulationState.getWorldId()
 
-                setMessages((prev) => [...prev, responseMessage])
-            }, 1000)
+                return {agentRequest: routerRequest, agentTask: null}
+
+            default:
+                return { agentRequest: chatRequest, agentTask: null }
+        };
+
+    }
+
+    // Handle sending a message
+    const handleSendMessage = async () => {
+        if (!inputValue.trim()) return
+
+        try {
+            setAgentInProgress(true);
+            // Extract mentioned agent
+            const { mentionedAgentId, cleanMessage } = extractMention(inputValue);
+
+            if (mentionedAgentId && (activeAgents.includes(mentionedAgentId) || mentionedAgentId === AgentID.ORCHESTRATOR)) {
+                await sendAgentChatMessage(mentionedAgentId, cleanMessage);
+            }
+            setAgentInProgress(false);
+        } catch (error) {
+            console.error("Error sending message:", error);
+            setAgentInProgress(false);
         }
     }
 
@@ -336,8 +454,8 @@ export function AIAgentsPanel() {
                             </div>
 
                             <Button onClick={handleSendMessage} className="flex-shrink-0">
-                                <Send className="h-4 w-4 mr-2" />
-                                Send
+                                {agentInProgress ? <Loader2 className="animate-spin" /> : <Send className="h-4 w-4 mr-2" />
+                                }
                             </Button>
                         </div>
                     </div>

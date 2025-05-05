@@ -1,27 +1,53 @@
+from flask.cli import load_dotenv
+load_dotenv()
+
 import os
+import traceback
 from fastapi import FastAPI
-import uvicorn
-from data.models.connection.redis import get_redis_conn
 from server.app import get_app
 from fastapi.concurrency import asynccontextmanager
-from flask.cli import load_dotenv
-
-load_dotenv()
 
 app = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # try:
+    #     # Set Langchain env variables
+    #     config = load_config()
+    #     if config.llm.langchain_tracing:
+    #         os.environ["LANGSMITH_TRACING"] = 'true'
+    #         os.environ['LANGCHAIN_TRACING_V2'] = 'true'
+    #         os.environ["LANGSMITH_API_KEY"] = config.llm.langchain_api_key.get_secret_value()
+    #         os.environ["LANGSMITH_ENDPOINT"] = config.llm.langsmith_endpoint
+    #         os.environ["LANGCHAIN_PROJECT"] = config.llm.langchain_project_name
+    #         os.environ['OPENAI_API_KEY'] = config.llm.api_key.get_secret_value()
+    #         print("Lifespan: Langchain environment variables set.")
+    #     else:
+    #         logging.info("Lifespan: Langchain tracing is disabled.")
+    #         os.environ["LANGCHAIN_TRACING_V2"] = "false"
+    # except Exception as e:
+    #     print(f"Lifespan ERROR: Failed to set Langchain environment variables: {e}")
+
     print("Lifespan: Connecting to Redis...")
     try:
+        from data.models.connection.redis import get_redis_conn
         if get_redis_conn().ping():
             print("Lifespan: Connected to Redis.")
         else:
             raise Exception("Failed to connect to Redis")
+
     except Exception as e:
         print(f"Lifespan ERROR: Failed to connect to Redis: {e}")
-        # Decide how to handle connection failure
+
+    try:
+        from ai_agent.src.orchestration.coordinator import Coordinator
+        # Initialize the Coordinate class
+        await Coordinator().initialize_system()
+        print("Lifespan: Coordinate class initialized.")
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Lifespan ERROR: Failed to initialize Coordinate class: {e}")
+
     yield
     # Shutdown
     print("Lifespan: Disconnecting from Redis...")
@@ -42,6 +68,7 @@ if __name__ == '__main__':
     port = int(os.getenv("PORT", "5174"))
     reload_flag = os.getenv("DEBUG", "True").lower() in ["true", "1", "t"]
     
+    import uvicorn
     uvicorn.run(
         "start:app",
         host=host,

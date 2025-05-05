@@ -1,0 +1,109 @@
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
+from datetime import datetime
+
+from data.models.simulation.log_model import LogEntryModel
+
+class SummarizeInput(BaseModel):
+    """Input schema for log summarization tasks."""
+
+    simulation_id: str
+    simulation_id: str = Field(
+        description="The unique identifier for the simulation run to be summarized."
+    )
+
+
+class ExtractPattersInput(LogEntryModel):
+    pass
+
+
+class SummaryPeriod(BaseModel):
+    """Defines the time range covered by the summary."""
+    start: Optional[datetime] = Field(
+        default=None,
+        description="The start timestamp of the period included in the summary. Null if not applicable or calculable."
+    )
+    end: Optional[datetime] = Field(
+        default=None,
+        description="The end timestamp of the period included in the summary. Null if not applicable or calculable."
+    )
+
+
+class CommunicationFlow(BaseModel):
+    """Describes a specific communication path observed between two components."""
+    source: str = Field(
+        description="The identifier of the component/node where the communication flow originated."
+    )
+    destination: str = Field(
+        description="The identifier of the component/node where the communication flow terminated."
+    )
+    packet_count: int = Field(
+        description="The total number of packets observed traveling from the source to the destination along this path."
+    )
+    path: List[str] = Field(
+        description="An ordered list of component identifiers representing the path taken by packets in this flow."
+    )
+    relevant_log_pks: List[str] = Field(
+        description="A list of primary keys (pks) from the original log entries that provide evidence for this communication flow."
+    )
+
+
+class DetectedIssue(BaseModel):
+    """Represents a specific error, warning, or notable anomaly found in the logs."""
+    issue: str = Field(
+        description="A textual description of the detected issue (e.g., 'Packet timeout', 'QKD key rate low', 'Component error')."
+    )
+    relevant_log_pks: List[str] = Field(
+        description="A list of primary keys (pks) from the original log entries related to this specific issue."
+    )
+
+
+class DetailedSummary(BaseModel):
+    """Contains granular metrics and structured information derived from the logs."""
+    total_packets_transmitted: Optional[int] = Field(
+        default=0,
+        description="The overall count of packets transmitted within the summary period across all components."
+    )
+    packets_by_source: Dict[str, int] = Field(
+        default={},
+        description="A dictionary mapping source component identifiers to the number of packets they transmitted."
+    )
+    packets_by_destination: Dict[str, int] = Field(
+        default={},
+        description="A dictionary mapping destination component identifiers to the number of packets they received."
+    )
+    communication_flows: List[CommunicationFlow] = Field(
+        default=[],
+        description="A list detailing specific communication flows identified between components, including paths and packet counts."
+    )
+    errors_found: int = Field(
+        default=0,
+        description="The total count of log entries classified as errors within the summary period."
+    )
+    warnings_found: int = Field(
+        default=0,
+        description="The total count of log entries classified as warnings within the summary period."
+    )
+    detected_issues: List[DetectedIssue] = Field(
+        default=[],
+        description="A list of specific notable issues or anomalies detected during log analysis, beyond simple errors/warnings."
+    )
+    # Add other detailed metrics as needed
+
+
+class LogSummaryOutput(BaseModel):
+    """The overall structured summary output for a simulation log analysis."""
+    simulation_id: str = Field(
+        description="The unique identifier for the simulation run being summarized."
+    )
+    summary_period: Optional[SummaryPeriod] = Field(
+        default=None,
+        description="Specifies the time window (start and end) that this summary covers, if applicable."
+    )
+    short_summary: str = Field(
+        description="A brief, human-readable overview of the main events, activities, or findings from the simulation logs."
+    )
+    detailed_summary: DetailedSummary = Field(
+        description="A nested structure containing detailed quantitative and qualitative analysis derived from the logs."
+    )
