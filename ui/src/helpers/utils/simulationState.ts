@@ -1,6 +1,6 @@
 class SimulationState {
     private simulationRunning = false;
-    private simulationID: string | null = null;
+    private simulationID: string | null = "01JTF5QZMN3SV9NG6PMRDMGGEJ";
     private worldId: string | null = null;
 
     setSimulationID(simulationID: string | null) {

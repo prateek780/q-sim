@@ -48,9 +48,9 @@ export const NetworkCanvas = forwardRef(({ onNodeSelect, isSimulationRunning, si
     }, 2500);
   }, [editor]);
 
-  useEffect(() => {
-    debouncedCheckImport();
-  }, [editor])
+  // useEffect(() => {
+  //   debouncedCheckImport();
+  // }, [editor])
 
   // For some unknown reason, two canvases are generated. So, we debounce the import check to avoid rending on unseen canvas.
   const debouncedCheckImport = debounce(async (canvas?: fabric.Canvas) => {

@@ -24,11 +24,11 @@ async def handle_topology_design(message_dict: Dict[str, Any]):
         },
     )
 
-    if response.get('message_id') and response.get('generated_topology'):
-        try:
-            response['generated_topology']['temporary_world'] = True
-            response['generated_topology'] = save_world_to_redis(response['generated_topology'])
-        except Exception as e:
-            print(f"Error saving world to Redis: {e}")
+    # if response.get('message_id') and response.get('generated_topology'):
+    #     try:
+    #         response['generated_topology']['temporary_world'] = True
+    #         response['generated_topology'] = save_world_to_redis(response['generated_topology'])
+    #     except Exception as e:
+    #         print(f"Error saving world to Redis: {e}")
 
     return response

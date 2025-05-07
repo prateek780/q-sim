@@ -1,11 +1,12 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+from ai_agent.src.agents.base.base_structures import BaseAgentInput
 from data.models.simulation.log_model import LogEntryModel
 
-class SummarizeInput(BaseModel):
+class SummarizeInput(BaseAgentInput):
     """Input schema for log summarization tasks."""
 
     simulation_id: str
@@ -89,8 +90,17 @@ class DetailedSummary(BaseModel):
         default=[],
         description="A list of specific notable issues or anomalies detected during log analysis, beyond simple errors/warnings."
     )
-    # Add other detailed metrics as needed
 
+class KeyLogEvent(BaseModel):
+    """A single log entry with details about an event."""
+    timestamp: str = Field(
+        description="The date and time when the event occurred."
+    )
+    event_type: str = Field(
+        description="The type of event that occurred."
+    )
+    description: str = Field(description="A detailed description of the event.")
+    severity: Literal["info", "warning", "error", "success"] = Field(description="The severity level of the event.")
 
 class LogSummaryOutput(BaseModel):
     """The overall structured summary output for a simulation log analysis."""
@@ -103,6 +113,10 @@ class LogSummaryOutput(BaseModel):
     )
     short_summary: str = Field(
         description="A brief, human-readable overview of the main events, activities, or findings from the simulation logs."
+    )
+    key_events: List[KeyLogEvent] = Field(
+        default=[],
+        description="A list of human readable significant events or milestones identified in the logs from user's perfective."
     )
     detailed_summary: DetailedSummary = Field(
         description="A nested structure containing detailed quantitative and qualitative analysis derived from the logs."

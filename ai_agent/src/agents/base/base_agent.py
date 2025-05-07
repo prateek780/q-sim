@@ -10,6 +10,8 @@ from ai_agent.src.agents.base.enums import AgentTaskType
 from ai_agent.src.consts.agent_type import AgentType
 from data.embedding.embedding_util import EmbeddingUtil
 from data.embedding.vector_log import VectorLogEntry
+from data.models.conversation.conversation_model import HistoryItem
+from data.models.conversation.conversation_ops import get_conversation_history
 from data.models.simulation.simulation_model import get_simulation
 from data.models.topology.world_model import get_topology_from_redis
 
@@ -44,7 +46,6 @@ class BaseAgent(ABC):
     """Base class for all agents in the system."""
     
     def __init__(self, agent_id: AgentType, description: str):
-        print(f"Agent {__class__.__name__} Initialized")
         self.logger = logging.getLogger(f"Agent {__class__.__name__}")
         self.agent_id = agent_id.value
         self.description = description
@@ -66,6 +67,11 @@ class BaseAgent(ABC):
                 name="_get_topology_by_world_id",
                 description="Retrieves the detailed network topology configuration for a given world ID.",
             ),
+            StructuredTool.from_function(
+                func=self._get_chat_history,
+                name="_get_chat_history",
+                description="Retrieves the chat history for a given conversation ID.",
+            )
         ]
         
         self.embedding_util = EmbeddingUtil()
@@ -151,6 +157,7 @@ class BaseAgent(ABC):
 
     def _get_topology_by_simulation(self, simulation_id: str):
         """Retrieve the topology of a simulation using vector similarity"""
+        self.logger.debug(f"Retrieving topology for simulation {simulation_id}")
         simulation = get_simulation(simulation_id)
         if not simulation:
             return None
@@ -168,3 +175,9 @@ class BaseAgent(ABC):
             self.logger.error(f"No topology found for world {world_id}")
             return None
         return world.model_dump()
+    
+    def _get_chat_history(self, conversation_id: str, limit: int = 10, skip: int = 0) -> str:
+        self.logger.debug(f"Retrieving {limit} chat history (after skipping {skip}) for conversation {conversation_id}")
+        paginated_history = get_conversation_history(conversation_id, limit=limit, skip=skip)
+        
+        message_history = "\n".join(map(lambda x: x.model_dump_json(), paginated_history))

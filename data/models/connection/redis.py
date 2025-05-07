@@ -14,7 +14,7 @@ def get_redis_conn() -> Redis:
     if _redis_connection is None:
         config = load_config()
         redis_config = config.redis
-        print(f"Attempting to create Redis pool for: {redis_config.host}:{redis_config.port} DB: {redis_config.db}")
+
         _redis_connection = Redis(
             host=redis_config.host,
             port=redis_config.port,
@@ -24,7 +24,7 @@ def get_redis_conn() -> Redis:
             decode_responses=True,
         )
         if _redis_connection.ping():
-            print("Connected to Redis")
+            pass
         else:
             raise Exception("Failed to connect to Redis")
         # Configure redis-om to use our connection

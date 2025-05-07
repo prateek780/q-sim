@@ -1,11 +1,11 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-from ai_agent.src.agents.base.base_structures import BaseAgentOutput
+from ai_agent.src.agents.base.base_structures import BaseAgentInput, BaseAgentOutput
 from data.models.topology.world_model import WorldModal
 
 
-class OptimizeTopologyRequest(BaseModel):
+class OptimizeTopologyRequest(BaseAgentInput):
     world_id: str = Field(description="The ID of the world to optimize.")
     optional_instructions: Optional[str] = Field(
         description="Optional instructions for the optimization process."
@@ -41,7 +41,7 @@ class OptimizeTopologyOutput(BaseAgentOutput):
         description="Steps taken during the optimization process."
     )
 
-class SynthesisTopologyRequest(BaseModel):
+class SynthesisTopologyRequest(BaseAgentInput):
     user_query: str = Field(description="Instructions for optimizing the topology.")
 
 class SynthesisTopologyOutput(BaseAgentOutput):

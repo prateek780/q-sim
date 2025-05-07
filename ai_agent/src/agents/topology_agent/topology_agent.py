@@ -28,7 +28,7 @@ from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.exceptions.llm_exception import LLMError
 from data.models.conversation.conversation_model import AgentExecutionStatus
 from data.models.conversation.conversation_ops import finish_agent_turn, start_agent_turn
-from data.models.topology.world_model import WorldModal
+from data.models.topology.world_model import WorldModal, save_world_to_redis
 
 
 class TopologyAgent(BaseAgent):
@@ -84,6 +84,13 @@ class TopologyAgent(BaseAgent):
         if turn:
             finish_agent_turn(turn.pk, AgentExecutionStatus.SUCCESS, validated_output.copy())
             validated_output['message_id'] = turn.pk
+
+            if task_id == AgentTaskType.SYNTHESIZE_TOPOLOGY:
+                result.generated_topology.temporary_world = True
+                result.generated_topology = save_world_to_redis(result.generated_topology)
+            elif task_id == AgentTaskType.OPTIMIZE_TOPOLOGY:
+                result.optimized_topology.temporary_world = True
+                result.optimized_topology = save_world_to_redis(result.optimized_topology)
         return validated_output
 
     async def synthesize_topology(

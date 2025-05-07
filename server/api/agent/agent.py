@@ -22,7 +22,7 @@ agent_router = APIRouter(
 async def handle_routing_request(message_dict: Dict[str, Any]):
     message = AgentRouterRequest(**message_dict)
     agent_coordinator = Coordinator()
-    response = await agent_coordinator.execute_workflow(WorkflowType.ROUTING, message)
+    response = await agent_coordinator.execute_workflow(WorkflowType.ROUTING, message.model_dump())
     return response
 
 agent_to_handler = {

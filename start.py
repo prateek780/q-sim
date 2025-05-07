@@ -1,5 +1,9 @@
 from flask.cli import load_dotenv
-load_dotenv()
+
+if not load_dotenv():
+    print("Error loading .env file")
+    import sys
+    sys.exit(-1)
 
 import os
 import traceback
@@ -28,11 +32,10 @@ async def lifespan(app: FastAPI):
     # except Exception as e:
     #     print(f"Lifespan ERROR: Failed to set Langchain environment variables: {e}")
 
-    print("Lifespan: Connecting to Redis...")
     try:
         from data.models.connection.redis import get_redis_conn
         if get_redis_conn().ping():
-            print("Lifespan: Connected to Redis.")
+            pass
         else:
             raise Exception("Failed to connect to Redis")
 
@@ -43,10 +46,16 @@ async def lifespan(app: FastAPI):
         from ai_agent.src.orchestration.coordinator import Coordinator
         # Initialize the Coordinate class
         await Coordinator().initialize_system()
-        print("Lifespan: Coordinate class initialized.")
     except Exception as e:
         traceback.print_exc()
         print(f"Lifespan ERROR: Failed to initialize Coordinate class: {e}")
+
+    try:
+        from data.embedding.vector_log import VectorLogEntry
+        VectorLogEntry.create_index(get_redis_conn())
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Lifespan ERROR: Failed to create VectorLogEntry index: {e}")
 
     yield
     # Shutdown

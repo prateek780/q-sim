@@ -6,3 +6,4 @@ class AgentTaskType(Enum):
     EXTRACT_PATTERNS = "extract_patterns"
     OPTIMIZE_TOPOLOGY = "optimize_topology"
     SYNTHESIZE_TOPOLOGY = "synthesize_topology"
+    ROUTING = "routing"

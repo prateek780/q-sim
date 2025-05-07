@@ -2,16 +2,9 @@ import json
 import os
 from typing import Dict, List, Any
 from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-
 from ai_agent.src.agents.base.base_agent import BaseAgent
 from ai_agent.src.consts.agent_type import AgentType
-from ai_agent.src.exceptions.llm_exception import LLMError
-from ai_agent.src.orchestration.prompt import PROMPT_TEMPLATE
-from ai_agent.src.orchestration.structures import RoutingOutput
 from config.config import load_config
-from server.api.agent.agent_request import AgentRouterRequest
 
 class AgentManager:
     """Manages the lifecycle and coordination of AI agents in the system."""
@@ -53,7 +46,7 @@ class AgentManager:
         """List all registered agent IDs."""
         return list(self.agents.keys())
     
-    def get_agents_and_capabilities(self) -> str:
+    def get_agents_and_capabilities(self) -> List[str]:
         """Get a list of all agents and their capabilities."""
         capabilities = [json.dumps(self.get_agent(agent_id).get_capabilities(), indent=2) for agent_id in self.list_agents()]
         return capabilities
@@ -65,36 +58,6 @@ class AgentManager:
             raise ValueError(f"No agent found with ID '{agent_id}'")
         
         return agent.run(input_data)
-    
-    def find_best_agent_by_user_query(self, user_query: AgentRouterRequest) -> RoutingOutput:
-        """
-        Uses an LLM to determine the best agent for a user query based on agent descriptions.
-
-        Args:
-        user_query: The query submitted by the user.
-        available_agents: A list of AgentInfo objects describing the available agents.
-        llm: An initialized LangChain compatible Chat LLM instance.
-
-        Returns:
-        A RoutingOutput object containing the routing decision.
-        """
-        parser = PydanticOutputParser(pydantic_object=RoutingOutput)
-        format_instructions = parser.get_format_instructions()
-        prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-
-        chain = prompt | self.api_client | parser
-
-        try:
-            routing_input = {
-                "agent_details": self.get_agents_and_capabilities(),
-                "query": user_query.model_dump_json(indent=2, exclude=['agent_id'], exclude_none=True),
-                "format_instructions": format_instructions,
-            }
-            result = chain.invoke(routing_input)
-            return result
-
-        except Exception as e:
-            raise LLMError(f"Error routing query: {e}")
     
     def shutdown_agent(self, agent_id: AgentType) -> bool:
         """Shutdown and unregister an agent."""

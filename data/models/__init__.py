@@ -16,21 +16,21 @@ from data.models.topology.world_model import WorldModal
 from redis_om import Migrator
 
 __all__ = [
-    "ConnectionModal",
-    "HostModal",
-    "NetworkModal",
-    "AdapterModal",
-    "ZoneModal",
-    "WorldModal",
-    "SimulationModal",
-    "AgentTurn",
-    "ChatMessage",
-    "ChatLogMetadata",
+    ConnectionModal,
+    HostModal,
+    NetworkModal,
+    AdapterModal,
+    ZoneModal,
+    WorldModal,
+    SimulationModal,
+    AgentTurn,
+    ChatMessage,
+    ChatLogMetadata,
 ]
 
 
 def run_migrator():
-    # Ensure indexes are created
+    print("Running migrations...")
     Migrator().run()
 
 

@@ -1,4 +1,5 @@
 import { AgentID, AgentTask } from "./agent-declaration";
+import { AgentResponse } from "./agent_response";
 
 export interface ChatAttachmentI {
     type: string;
@@ -6,15 +7,17 @@ export interface ChatAttachmentI {
     preview: string;
 }
 
-export interface ChatMessageI {
+export interface ChatMessageI<T = AgentResponse> {
     id: string;
     role: "system" | "user" | "agent";
     content: string;
     timestamp: string;
     mentionedAgent?: string;
-    agentId?: string;
-    referencedAgents?: string[];
+    agentId?: AgentID;
+    taskId?: AgentTask;
+    referencedAgents?: AgentID[];
     attachments?: ChatAttachmentI[];
+    agentResponse?: T;
 }
 
 export interface ChatRequestI {

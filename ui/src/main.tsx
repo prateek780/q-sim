@@ -8,7 +8,7 @@ import App from './App.tsx'
 SimulatorNode.load();
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>
     <App />
-  </StrictMode>,
+  // </StrictMode>,
 )

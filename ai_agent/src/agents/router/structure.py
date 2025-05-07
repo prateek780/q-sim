@@ -1,10 +1,17 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 from ai_agent.src.agents.base.base_agent import AgentTask
 from ai_agent.src.agents.base.base_structures import BaseAgentInput, BaseAgentOutput
 from ai_agent.src.agents.base.enums import AgentTaskType
 from ai_agent.src.consts.agent_type import AgentType
+from server.api.agent.agent_request import AgentRouterRequest
+
+class RoutingInput(BaseAgentInput):
+    agent_details: List[str] = Field(
+        description="Details about the agents available for routing. This should include their capabilities and any other relevant information."
+    )
+    user_query: Union[Dict[str, Any], AgentRouterRequest] = None
 
 
 class RoutingOutput(BaseAgentOutput):

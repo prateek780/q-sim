@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 import { JSX } from "react/jsx-runtime";
 
-interface AgentI {
+export interface AgentI {
     id: AgentID;
     name: string;
     description: string;

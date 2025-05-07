@@ -101,7 +101,9 @@ export function AIAgentsPanel() {
                     name: 'generated_topology.json',
                     preview: JSON.stringify(message.generated_topology)
                 }
-            ]
+            ],
+            agentResponse: message,
+            taskId: AgentTask.SYNTHESIZE_TOPOLOGY
         }
     }
 
@@ -129,7 +131,9 @@ export function AIAgentsPanel() {
             id: (messages.length + 1).toString(),
             timestamp: new Date().toISOString(),
             agentId: AgentID.TOPOLOGY_DESIGNER,
-            role: 'agent'
+            role: 'agent',
+            agentResponse: message,
+            taskId: AgentTask.OPTIMIZE_TOPOLOGY
         }
 
     }
@@ -185,6 +189,7 @@ export function AIAgentsPanel() {
                 id: (messages.length + 1).toString(),
                 timestamp: new Date().toISOString(),
                 agentId: AgentID.ORCHESTRATOR,
+                agentResponse: message,
             }
         } else if (message.agent_response) {
             handleReceivedMessage(message.agent_id as AgentID, message.agent_response, message.task_id as AgentTask)
@@ -203,6 +208,8 @@ export function AIAgentsPanel() {
             id: (messages.length + 1).toString(),
             timestamp: new Date().toISOString(),
             agentId: AgentID.LOG_SUMMARIZER,
+            agentResponse: message,
+            taskId: AgentTask.LOG_SUMMARIZATION
         }
     }
 
@@ -275,7 +282,9 @@ export function AIAgentsPanel() {
             case AgentID.ORCHESTRATOR:
                 const routerRequest = chatRequest as AgentRouterRequest;
                 
-                routerRequest.extra_kwargs = {};
+                routerRequest.extra_kwargs = {
+                    'conversation_id': chatRequest.conversation_id,
+                };
                 if(simulationState.getSimulationID())
                 routerRequest.extra_kwargs['simulation_id'] =  simulationState.getSimulationID()
 

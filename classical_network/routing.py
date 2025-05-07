@@ -63,12 +63,12 @@ class InternetExchange(ClassicalNode):
 
     def route_packet(self, packet: ClassicDataPacket):
         packet.append_hop(self)
-        direct_connection = self.get_connection(self, packet.to_address)
+        # direct_connection = self.get_connection(self, packet.to_address)
         
-        if direct_connection:
-            packet.next_hop = packet.to_address
-            direct_connection.transmit_packet(packet)
-            return
+        # if direct_connection:
+        #     packet.next_hop = packet.to_address
+        #     direct_connection.transmit_packet(packet)
+        #     return
         
         shortest_path = self.get_path(self, packet.to_address)
         
@@ -88,6 +88,9 @@ class InternetExchange(ClassicalNode):
         
     def add_connection(self, connection: ClassicConnection):
         super().add_connection(connection)
+
+        if connection.node_1 == self or connection.node_2 == self:
+            return
         self.route_table.add_edge(connection.node_1, connection.node_2)
         
 

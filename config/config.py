@@ -33,6 +33,7 @@ class AppConfig(BaseSettings):
         for key, value in os.environ.items():
             placeholder = f"${{{key}}}"
             if placeholder in yaml_str:
+                # print(f"Found placeholder: {placeholder} with value: {value[:2]}XXX${value[-2:]}")
                 yaml_str = yaml_str.replace(placeholder, value)
                 
         config_dict = yaml.safe_load(yaml_str)

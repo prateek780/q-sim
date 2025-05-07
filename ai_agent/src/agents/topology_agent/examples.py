@@ -356,7 +356,7 @@ OUTPUT_EXAMPLE = {
 TOPOLOGY_OPTIMIZE_EXAMPLES = [
     {
         "input": OptimizeTopologyRequest(
-            **{"world_id": "01JSMD3F6SZF664Y71V5Z5DCKG", "optional_instructions": None}
+            **{"world_id": "01JSMD3F6SZF664Y71V5Z5DCKG", "optional_instructions": None, 'conversation_id': '12345'}
         ),
         "extra_info": f"Sample world used for this example: {WorldModal(**TEST_WORLD[0]).model_dump_json()}",
         "output": OptimizeTopologyOutput(**OUTPUT_EXAMPLE),
@@ -365,7 +365,8 @@ TOPOLOGY_OPTIMIZE_EXAMPLES = [
 
 
 SYNTHESIZE_INPUT_EXAMPLE = {
-    "user_query": "Create a classical network topology with 2 hosts connected via one router."
+    "user_query": "Create a classical network topology with 2 hosts connected via one router.", 
+    'conversation_id': '12345'
 }
 
 SYNTHESIZE_OUTPUT_EXAMPLE = {
@@ -443,7 +444,8 @@ SYNTHESIZE_OUTPUT_EXAMPLE = {
 }
 
 SYNTHESIZE_INPUT_EXAMPLE_1 = {
-    "user_query": "Create a topology with 2 classical hosts connected via a quantum encryption channel and a classical router."
+    "user_query": "Create a topology with 2 classical hosts connected via a quantum encryption channel and a classical router.",
+    "conversation_id": '67898'
 }
 
 SYNTHESIZE_OUTPUT_EXAMPLE_1 = {

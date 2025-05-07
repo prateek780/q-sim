@@ -162,21 +162,20 @@ const NetworkVisualizer = ({ topologyStringifiedData }: NetworkVisualizerProps) 
 
     return (
         <div className="network-view-container">
-            <Button 
-                
+            <Button className="mt-2"
                 onClick={() => {
                     window.location.href = `/?topologyID=${topologyData.pk}&temp=${topologyData.temporary_world}`;
-                  }}
+                }}
             >Use this topology</Button>
-        <div
-            ref={networkRef as any}
-            style={{
-                width: '100%',
-                height: '600px',
-                border: '1px solid #ddd',
-                borderRadius: '4px'
-            }}
-        />
+            <div
+                ref={networkRef as any}
+                style={{
+                    width: '100%',
+                    height: '450px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px'
+                }}
+            />
         </div>
     );
 };

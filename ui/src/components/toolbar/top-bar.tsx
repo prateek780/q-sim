@@ -65,6 +65,8 @@ export function TopBar({
     const activeTopologyID = simulationState.getWorldId();
     if (activeTopologyID)
       jsonData.pk = activeTopologyID;
+    else
+      jsonData.name = prompt("Enter a name for the topology") || "Untitled Topology";
 
     const response = await api.saveTopology(jsonData);
 
