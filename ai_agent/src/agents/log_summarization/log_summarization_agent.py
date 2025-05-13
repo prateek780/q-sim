@@ -1,7 +1,7 @@
 import json
 import logging
 import traceback
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from fastapi import HTTPException
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import (
@@ -16,8 +16,8 @@ import re
 
 from ai_agent.src.agents.base.enums import AgentTaskType
 from ai_agent.src.agents.log_summarization.examples import LOG_SUMMARY_EXAMPLES
-from ai_agent.src.agents.log_summarization.prompt import get_system_prompt
-from ai_agent.src.agents.log_summarization.structures import LogSummaryOutput, SummarizeInput
+from ai_agent.src.agents.log_summarization.prompt import LOG_QNA_AGENT, get_system_prompt
+from ai_agent.src.agents.log_summarization.structures import LogQnAOutput, LogQnARequest, LogSummaryOutput, SummarizeInput
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.exceptions.llm_exception import LLMError
 from data.embedding.embedding_util import EmbeddingUtil
@@ -46,6 +46,13 @@ class LogSummarizationAgent(BaseAgent):
                 input_schema=SummarizeInput,
                 output_schema=LogSummaryOutput,
                 examples=LOG_SUMMARY_EXAMPLES,
+            ),
+            AgentTaskType.LOG_QNA: AgentTask(
+                task_id=AgentTaskType.LOG_QNA,
+                description="Answer questions about specific events or patterns in logs",
+                input_schema=LogQnARequest,
+                output_schema=LogQnAOutput,
+                examples=[],
             ),
         }
 
@@ -84,6 +91,8 @@ class LogSummarizationAgent(BaseAgent):
 
         if task_id == AgentTaskType.LOG_SUMMARIZATION:
             result = await self._summarize_logs(validated_input)
+        elif task_id == AgentTaskType.LOG_QNA:
+            result = await self.log_qna(validated_input)
         elif task_id == AgentTaskType.EXTRACT_PATTERNS:
             result = await self._extract_patterns(validated_input)
         else:
@@ -170,3 +179,86 @@ class LogSummarizationAgent(BaseAgent):
         )
 
         return summary_result
+
+    async def log_qna(self, input_data: Union[Dict[str, Any], LogQnARequest]):
+        if isinstance(input_data, Dict):
+            # Implement the logic to optimize the topology based on the provided instructions
+            input_data = LogQnARequest(**input_data)
+        parser = PydanticOutputParser(pydantic_object=LogQnAOutput)
+        format_instructions = parser.get_format_instructions()
+
+        system_message_prompt = SystemMessagePromptTemplate.from_template(
+            LOG_QNA_AGENT
+        )
+
+        human_message_prompt = HumanMessagePromptTemplate.from_template(
+            "{input}\n\n{agent_scratchpad}"
+        )
+        prompt = ChatPromptTemplate.from_messages(
+            [system_message_prompt, human_message_prompt]
+        )
+        
+        if self.llm and self.tools:
+            llm_with_tools = self.llm.bind_tools(self.tools)
+
+            agent = create_structured_chat_agent(llm_with_tools, self.tools, prompt)
+
+            agent_executor = AgentExecutor(
+                agent=agent,
+                tools=self.tools,
+                verbose=True,
+                return_intermediate_steps=True,
+                handle_parsing_errors=True,
+                max_iterations=5,
+                early_stopping_method="force",
+            )
+
+            try:
+                agent_input = {
+                    "simulation_id": input_data.simulation_id,
+                    'topology_data': self._get_topology_by_simulation(input_data.simulation_id),
+                    'conversation_id': input_data.conversation_id,
+                    "optional_instructions": input_data.optional_instructions
+                    or "None provided. Apply general optimization principles.",
+                    "answer_instructions": format_instructions,
+                    'user_question': input_data.user_query,
+                    'last_5_messages': self._get_chat_history(input_data.conversation_id, 5),
+                    "input": f'Answer the following question about the logs of simulation {input_data.simulation_id}: {input_data.user_query}',
+                }
+                result = agent_executor.invoke(agent_input)
+                final_output_data = result.get("output")
+
+                if isinstance(final_output_data, dict):
+                    # Parse the dictionary into the Pydantic model for validation
+                    parsed_output = LogQnAOutput.model_validate(
+                        final_output_data
+                    )
+                    print("--- Optimization Proposal Generated ---")
+                    return parsed_output
+                else:
+                    print(
+                        f"ERROR: Agent returned unexpected final output format: {type(final_output_data)}"
+                    )
+                    print(f"Raw output: {final_output_data}")
+                    # Attempt to parse if it's a string containing JSON (shouldn't happen with correct prompt)
+                    if isinstance(final_output_data, str):
+                        try:
+                            parsed_output = LogQnAOutput.model_validate_json(
+                                final_output_data
+                            )
+                            print(
+                                "--- Optimization Proposal Generated (Parsed from String) ---"
+                            )
+                            return parsed_output
+                        except Exception as e_parse:
+                            print(
+                                f"ERROR: Failed to parse string output as JSON: {e_parse}"
+                            )
+
+                    return None  # Failed
+            except Exception as e:
+                traceback.print_exc()
+                self.logger.exception(f"Exception during agent execution!")
+                raise LLMError(f"Error during agent execution: {e}")
+        else:
+            raise Exception("LLM not available, logs invalid, or no tools defined")

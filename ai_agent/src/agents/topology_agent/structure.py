@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 from ai_agent.src.agents.base.base_structures import BaseAgentInput, BaseAgentOutput
@@ -56,3 +56,21 @@ class SynthesisTopologyOutput(BaseAgentOutput):
         description="Thought process leading to the synthesis.",
         default=[]
     )
+
+class TopologyQnARequest(BaseAgentInput):
+    user_query: str = Field(description="Instructions for optimizing the topology.")
+    world_id: str = Field(description="The ID of the world to optimize.")
+    optional_instructions: Optional[str] = Field(
+        description="Optional instructions for the optimization process."
+    )
+
+class RelevantTopologyPart(BaseModel):
+    path: str
+    snippet: Optional[Union[str, Dict, List]]
+
+
+class TopologyQnAOutput(BaseModel):
+    status: Literal["answered", "clarification_needed", "error", "unanswerable"] = Field(description="The outcome status of the QnA attempt.")
+    answer: str = Field(description="The natural language answer if status is 'answered'; the clarifying question if status is 'clarification_needed'; or an error/unanswerable message if status is 'error' or 'unanswerable'.")
+    relevant_topology_parts: Optional[List[RelevantTopologyPart]] = Field(None, description="List of references to specific parts of the topology data that support the answer, only if status is 'answered'.")
+    error_message: Optional[str] = Field(None, description="Specific error details if status is 'error'.")

@@ -30,10 +30,12 @@ export enum AgentID {
 }
 
 export enum AgentTask {
-LOG_SUMMARIZATION = "summarize",
-EXTRACT_PATTERNS = "extract_patterns",
-OPTIMIZE_TOPOLOGY = "optimize_topology",
-SYNTHESIZE_TOPOLOGY = "synthesize_topology"
+    LOG_SUMMARIZATION = "summarize",
+    LOG_QNA = "log_qna",
+    EXTRACT_PATTERNS = "extract_patterns",
+    OPTIMIZE_TOPOLOGY = "optimize_topology",
+    SYNTHESIZE_TOPOLOGY = "synthesize_topology",
+    TOPOLOGY_QNA = "topology_qna"
 }
 
 export const AGENT_DEFINITION: AgentI[] = [

@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -121,3 +121,17 @@ class LogSummaryOutput(BaseModel):
     detailed_summary: DetailedSummary = Field(
         description="A nested structure containing detailed quantitative and qualitative analysis derived from the logs."
     )
+
+
+class LogQnARequest(BaseAgentInput):
+    user_query: str = Field(description="Question about the simulation logs.")
+    simulation_id: str = Field(description="The ID of the simulation to analyze logs of.")
+    optional_instructions: Optional[str] = Field(
+        description="Optional instructions for the analysis process."
+    )
+
+class LogQnAOutput(BaseModel):
+    status: Literal["answered", "clarification_needed", "error", "unanswerable"] = Field(description="The outcome status of the QnA attempt.")
+    answer: str = Field(description="The natural language answer if status is 'answered'; the clarifying question if status is 'clarification_needed'; or an error/unanswerable message if status is 'error' or 'unanswerable'.")
+    cited_log_entries: Optional[List[Dict[str, Any]]] = Field(None, description="A list of relevant log entry objects (or key parts) that support the answer, only if status is 'answered'.")
+    error_message: Optional[str] = Field(None, description="Specific error details if status is 'error'.")
