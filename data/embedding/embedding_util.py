@@ -3,7 +3,7 @@ import time
 import importlib.util
 from typing import List, Dict, Any, Optional, Union
 
-from config.config import load_config
+from config.config import get_config
 from core.enums import NodeType
 from data.embedding.vector_log import VectorLogEntry
 from data.models.simulation.log_model import LogEntryModel as LogEntry, LogLevel
@@ -31,7 +31,7 @@ class EmbeddingUtil:
             self._embedding_model = "openai"
             # Check if API key is set in environment
             import os
-            config = load_config()
+            config = get_config()
             if config.llm.api_key:
                 # openai.api_key = config.llm.api_key.get_secret_value()
                 # openai.base_url = config.llm.base_url

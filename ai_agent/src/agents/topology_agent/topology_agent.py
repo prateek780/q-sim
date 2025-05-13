@@ -27,8 +27,11 @@ from ai_agent.src.agents.topology_agent.structure import (
     TopologyQnAOutput,
     TopologyQnARequest,
 )
+from ai_agent.src.agents.validation_agent.structures import TopologyValidationResult, ValidationStatus
+from ai_agent.src.agents.validation_agent.validation_agent import ValidationAgent
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.exceptions.llm_exception import LLMError
+from config.config import get_config
 from data.models.conversation.conversation_model import AgentExecutionStatus
 from data.models.conversation.conversation_ops import finish_agent_turn, start_agent_turn
 from data.models.topology.world_model import WorldModal, save_world_to_redis
@@ -47,6 +50,7 @@ class TopologyAgent(BaseAgent):
         )
 
         self.llm: ChatOpenAI = llm
+        self.validation_agent = ValidationAgent(llm)
 
     def _register_tasks(self):
         return {
@@ -85,6 +89,36 @@ class TopologyAgent(BaseAgent):
             result = await self.update_topology(validated_input)
         elif task_id == AgentTaskType.SYNTHESIZE_TOPOLOGY:
             result = await self.synthesize_topology(validated_input)
+            config = get_config()
+
+
+            if config.agents.agent_validation.enabled:
+                # validate the synthesis result with the validation agent
+                errors = await self.validation_agent.run(AgentTaskType.VALIDATE_TOPOLOGY, {'generate_response': result})
+                
+                errors = TopologyValidationResult(**errors)
+                # Handle validation errors
+                if errors.validation_status == ValidationStatus.FAILED:
+                    result.success = False
+                    result.error =','.join(errors.static_errors)
+                    result.overall_feedback = "Synthesis failed due to validation errors."
+                elif errors.validation_status == ValidationStatus.FAILED_WITH_ERRORS:
+                    result.success = False
+                    result.error = [f"{i.issue_type}: {i.description}" for i in errors.issues_found]
+                    result.overall_feedback = "Synthesis failed due to validation errors."
+                elif errors.validation_status == ValidationStatus.PASSED_WITH_WARNINGS:
+                    result.success = True
+                    result.error = [f"{i.issue_type}: {i.description}" for i in errors.issues_found]
+                elif errors.validation_status == ValidationStatus.FAILED_RETRY_RECOMMENDED:
+                    # Recommend retry with specific feedback if enabled
+                    if config.agents.agent_validation.regenerate_on_invalid:
+                        validated_input['regeneration_feedback'] = errors.regeneration_feedback
+                        result = await self.synthesize_topology(validated_input)
+                    else:
+                        result.success = False
+                        result.error = [f"{i.issue_type}: {i.description}" for i in errors.issues_found]
+                        result.overall_feedback = "Synthesis failed due to validation errors."
+                
         elif task_id == AgentTaskType.TOPOLOGY_QNA:
             result = await self.topology_qna(validated_input)
         else:
@@ -145,6 +179,7 @@ class TopologyAgent(BaseAgent):
                     "user_instructions": input_data.user_query,
                     "answer_instructions": format_instructions,
                     "input": input_data.user_query,
+                    'regeneration_feedback_from_validation': input_data.regeneration_feedback,
                 }
                 result = agent_executor.invoke(agent_input)
                 final_output_data = result.get("output")

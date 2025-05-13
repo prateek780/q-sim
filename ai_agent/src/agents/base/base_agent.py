@@ -110,7 +110,10 @@ class BaseAgent(ABC):
             raise ValueError(f"Task {task_id} not supported by this agent")
         
         # Validate using Pydantic
-        validated = task.input_schema(**input_data)
+        if isinstance(input_data, task.input_schema):
+            validated = input_data
+        elif isinstance(input_data, dict):
+            validated = task.input_schema(**input_data)
         return validated.model_dump()
     
     def validate_output(self, task_id: str, output_data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
@@ -128,6 +131,8 @@ class BaseAgent(ABC):
             # Validate using Pydantic
             validated = task.output_schema(**output_data)
             return validated.model_dump()
+        elif isinstance(output_data, task.output_schema):
+            return output_data.model_dump()
         else:
             print(f"Unsupported output data type: {type(output_data)}")
             print(f'''

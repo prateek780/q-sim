@@ -4,13 +4,13 @@ from typing import Dict, List, Any
 from langchain_openai import ChatOpenAI
 from ai_agent.src.agents.base.base_agent import BaseAgent
 from ai_agent.src.consts.agent_type import AgentType
-from config.config import load_config
+from config.config import get_config
 
 class AgentManager:
     """Manages the lifecycle and coordination of AI agents in the system."""
     
     def __init__(self):
-        self.config = load_config()
+        self.config = get_config()
         self.agents: Dict[AgentType, BaseAgent] = {}
         self.api_client = self._initialize_llm()
         

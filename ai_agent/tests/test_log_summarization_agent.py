@@ -7,7 +7,7 @@ import os
 # Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.config import load_config
+from config.config import get_config
 from src.agents.log_summarization.log_summarization_agent import LogSummarizationAgent
 from langchain_openai import ChatOpenAI
 
@@ -29,7 +29,7 @@ def log_agent():
     # Use actual LLM for testing
     if global_agent:
         return global_agent
-    config = load_config()
+    config = get_config()
     llm_config = config.llm
     try:
         llm = ChatOpenAI(model_name=llm_config.model, base_url=llm_config.base_url, api_key=llm_config.api_key, temperature=0)

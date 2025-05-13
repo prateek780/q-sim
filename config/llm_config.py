@@ -17,3 +17,10 @@ class LLMConfig(BaseModel):
     langchain_project_name: str = "simulator_agent_dev"
     langsmith_endpoint: Optional[str] = "https://api.smith.langchain.com"
     langchain_tracing: bool = False
+
+class AgentValidationConfig(BaseModel):
+    enabled: bool = True
+    regenerate_on_invalid: bool = True
+
+class AgentConfig(BaseModel):
+    agent_validation: AgentValidationConfig

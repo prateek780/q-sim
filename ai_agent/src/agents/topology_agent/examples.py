@@ -441,6 +441,7 @@ SYNTHESIZE_OUTPUT_EXAMPLE = {
     "thought_process": [
         "Created a classical network topology with 2 hosts connected via one router."
     ],
+    "input_query": SYNTHESIZE_INPUT_EXAMPLE['user_query']
 }
 
 SYNTHESIZE_INPUT_EXAMPLE_1 = {
@@ -606,6 +607,7 @@ SYNTHESIZE_OUTPUT_EXAMPLE_1 = {
     "thought_process": [
         "Created a classical network topology with 2 hosts connected via one router."
     ],
+    "input_query": SYNTHESIZE_INPUT_EXAMPLE_1['user_query']
 }
 
 

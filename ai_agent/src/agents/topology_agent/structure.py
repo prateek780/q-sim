@@ -43,6 +43,15 @@ class OptimizeTopologyOutput(BaseAgentOutput):
 
 class SynthesisTopologyRequest(BaseAgentInput):
     user_query: str = Field(description="Instructions for optimizing the topology.")
+    regeneration_feedback: Optional[str] = Field(
+        None,
+        description=(
+            "Optional consolidated feedback and specific instructions from a prior validation step, "
+            "to be used by the Topology Generator Agent if this is a retry attempt. "
+            "This feedback aims to guide the agent towards correcting previously identified issues "
+            "or clarifying ambiguities from the original user_query."
+        )
+    )
 
 class SynthesisTopologyOutput(BaseAgentOutput):
     error: Optional[str] = Field(description="Error message if any occurred during the synthesis.")
@@ -56,6 +65,7 @@ class SynthesisTopologyOutput(BaseAgentOutput):
         description="Thought process leading to the synthesis.",
         default=[]
     )
+    input_query: str = Field(description="The original user query.")
 
 class TopologyQnARequest(BaseAgentInput):
     user_query: str = Field(description="Instructions for optimizing the topology.")
