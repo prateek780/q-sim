@@ -13,10 +13,10 @@ export interface LogSummaryResponse extends AgentResponse {
 }
 
 export interface KeyLogEvent {
-  timestamp: string
-  event_type: string
-  description: string
-  severity: "info" | "warning" | "error" | "success"
+    timestamp: string
+    event_type: string
+    description: string
+    severity: "info" | "warning" | "error" | "success"
 }
 
 
@@ -43,6 +43,14 @@ export interface CommunicationFlow {
     relevant_log_pks: string[]
 }
 
+// ================== LOG QNA RESPONSE ===================
+export interface LogQnaResponse extends AgentResponse {
+    status: string
+    answer: string
+    cited_log_entries: any
+    error_message: any
+  }
+  
 
 // ================== ORCHESTRATOR RESPONSE ===================
 export interface OrchestratorResponse extends AgentResponse {
@@ -80,4 +88,18 @@ export interface TopologyGenerationResponse {
     overall_feedback: string
     cost: number
     thought_process: string[]
-  }
+}
+
+// ================== TOPOLOGY QnA RESPONSE ===================
+export interface TopologyQnAResponse {
+    status: string
+    answer: string
+    relevant_topology_parts: RelevantTopologyPart[]
+    error_message: any
+    message_id: string
+}
+
+export interface RelevantTopologyPart {
+    path: string
+    snippet: string
+}

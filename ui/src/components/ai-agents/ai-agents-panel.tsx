@@ -23,7 +23,7 @@ import { AGENT_DEFINITION, AgentID, AgentTask } from "./agent-declaration"
 import { Message } from "./message"
 import { AgentRouterRequest, ChatMessageI, ChatRequestI, LogAgentRequest, TopologyGenerationRequest, TopologyOptimizerRequest } from "./message.interface"
 import api from "@/services/api"
-import { LogSummaryResponse, OrchestratorResponse, TopologyGenerationResponse, TopologyOptimizerResponse } from "./agent_response"
+import { LogQnaResponse, LogSummaryResponse, OrchestratorResponse, TopologyGenerationResponse, TopologyOptimizerResponse, TopologyQnAResponse } from "./agent_response"
 import { getLogger } from "@/helpers/simLogger"
 import simulationState from "@/helpers/utils/simulationState"
 import { toast } from "sonner"
@@ -45,6 +45,7 @@ export function AIAgentsPanel() {
 
     // Scroll to bottom when messages change
     useEffect(() => {
+        console.log('Messages updated:', messages);
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
         }
@@ -138,6 +139,19 @@ export function AIAgentsPanel() {
 
     }
 
+    const handleTopologyQnAOutput = (message: TopologyQnAResponse): ChatMessageI => {
+        return {
+            content: message.answer,
+            attachments: [],
+            id: (messages.length + 1).toString(),
+            timestamp: new Date().toISOString(),
+            agentId: AgentID.TOPOLOGY_DESIGNER,
+            role: 'agent',
+            agentResponse: message,
+            taskId: AgentTask.TOPOLOGY_QNA
+        }
+    }
+
     const handleCongestionMonitorMessage = (message: string) => {
         const responseContent =
             "Monitoring active... I've detected moderate congestion in the quantum channel between nodes QuantumHost1 and QuantumAdapter. Current buffer utilization is at 72% with increasing trend. Recommend traffic redistribution within the next 5 minutes."
@@ -213,11 +227,28 @@ export function AIAgentsPanel() {
         }
     }
 
+    const handleLogQnaResponse = (message: LogQnaResponse): ChatMessageI => {
+        const responseContent = message.answer;
+        return {
+            content: responseContent,
+            role: 'agent',
+            id: (messages.length + 1).toString(),
+            timestamp: new Date().toISOString(),
+            agentId: AgentID.LOG_SUMMARIZER,
+            agentResponse: message,
+            taskId: AgentTask.LOG_QNA
+        }
+    }
+
     const handleReceivedMessage = async (agentId: AgentID, response: any, task?: AgentTask | null) => {
         var responseMessage: ChatMessageI | null = null;
         switch (agentId) {
             case AgentID.LOG_SUMMARIZER:
-                responseMessage = handleLogSummarizerMessage(response);
+                if (task === AgentTask.LOG_QNA) {
+                    responseMessage = handleLogQnaResponse(response);
+                } else {
+                    responseMessage = handleLogSummarizerMessage(response);
+                }
                 break;
 
             case AgentID.ORCHESTRATOR:
@@ -227,6 +258,8 @@ export function AIAgentsPanel() {
             case AgentID.TOPOLOGY_DESIGNER:
                 if (task === AgentTask.SYNTHESIZE_TOPOLOGY) {
                     responseMessage = handleTopologyGenerationResponse(response);
+                } else if (task === AgentTask.TOPOLOGY_QNA) {
+                    responseMessage = handleTopologyQnAOutput(response);
                 } else {
                     responseMessage = handleTopologyDesignerMessage(response);
                 }
@@ -238,7 +271,7 @@ export function AIAgentsPanel() {
         }
 
         if (responseMessage) {
-            setMessages([...messages, responseMessage]);
+            setMessages(prevMessages => [...prevMessages, responseMessage as ChatMessageI]);
         }
     }
 
@@ -249,15 +282,25 @@ export function AIAgentsPanel() {
             user_query: content,
         };
 
-        const {agentRequest, agentTask} = validateAndUpdateMentionAgentRequirements(agentId, chatRequest)
+        const { agentRequest, agentTask } = validateAndUpdateMentionAgentRequirements(agentId, chatRequest)
 
         if (!agentRequest) {
             return;
         }
 
-        if (agentTask) 
+        if (agentTask)
             agentRequest.task_id = agentTask;
 
+        const userMessage: ChatMessageI = {
+            id: (messages.length + 1).toString(),
+            role: "user",
+            content: chatRequest.user_query,
+            timestamp: new Date().toISOString(),
+            mentionedAgent: chatRequest.agent_id,
+            attachments: []
+        };
+        setMessages(prevMessages => [...prevMessages, userMessage]);
+        console.log(messages)
         const response = await api.sendAgentMessage(agentRequest)
 
         await handleReceivedMessage(agentId, response, agentTask);
@@ -281,17 +324,17 @@ export function AIAgentsPanel() {
 
             case AgentID.ORCHESTRATOR:
                 const routerRequest = chatRequest as AgentRouterRequest;
-                
+
                 routerRequest.extra_kwargs = {
                     'conversation_id': chatRequest.conversation_id,
                 };
-                if(simulationState.getSimulationID())
-                routerRequest.extra_kwargs['simulation_id'] =  simulationState.getSimulationID()
+                if (simulationState.getSimulationID())
+                    routerRequest.extra_kwargs['simulation_id'] = simulationState.getSimulationID()
 
-                if(simulationState.getWorldId())
+                if (simulationState.getWorldId())
                     routerRequest.extra_kwargs['world_id'] = simulationState.getWorldId()
 
-                return {agentRequest: routerRequest, agentTask: null}
+                return { agentRequest: routerRequest, agentTask: null }
 
             default:
                 return { agentRequest: chatRequest, agentTask: null }

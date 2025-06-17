@@ -3,7 +3,7 @@ import os
 from redis.client import Redis
 from redis_om import get_redis_connection
 
-from config.config import load_config
+from config.config import get_config
 
 # Global Redis connection
 _redis_connection = None
@@ -12,7 +12,7 @@ def get_redis_conn() -> Redis:
     """Get or create Redis connection (singleton pattern)"""
     global _redis_connection
     if _redis_connection is None:
-        config = load_config()
+        config = get_config()
         redis_config = config.redis
 
         _redis_connection = Redis(

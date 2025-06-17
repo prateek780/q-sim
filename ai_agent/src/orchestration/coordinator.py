@@ -7,7 +7,7 @@ from ai_agent.src.agents.router.structure import RoutingOutput
 from ai_agent.src.consts.agent_type import AgentType
 from ai_agent.src.consts.workflow_type import WorkflowType
 from ai_agent.src.exceptions.llm_exception import LLMError
-from config.config import load_config
+from config.config import get_config
 from .agent_manager import AgentManager
 
 class Coordinator:
@@ -22,7 +22,7 @@ class Coordinator:
 
     def __init__(self):
         if not hasattr(self, "initialized"):
-            self.config = load_config()
+            self.config = get_config()
             self.agent_manager = AgentManager()
             self.active_workflows = {}
             self.logger = logging.getLogger("coordinator")

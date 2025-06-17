@@ -7,3 +7,4 @@ class AgentType(Enum):
     PERFORMANCE_ANALYZER = "performance_analyzer"
     COMPOUND_AI_ARCHITECT = "compound_ai_architect"
     ORCHESTRATOR = "orchestrator"
+    VALIDATION_AGENT = "validation_agent"
